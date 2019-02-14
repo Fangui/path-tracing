@@ -17,7 +17,7 @@ public:
     Vector norm(void) const;
     Vector norm_inplace(void);
 
-private:
+//private:
     inline float get_dist() { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); };
     float x_;
     float y_;
