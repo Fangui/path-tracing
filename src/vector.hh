@@ -5,6 +5,7 @@
 class Vector
 {
 public:
+    Vector() = default;
     Vector(float x, float y, float z) : x_(x), y_(y), z_(z) {};
     Vector operator+(const Vector &rhs) const;
     Vector operator+=(const Vector &rhs);

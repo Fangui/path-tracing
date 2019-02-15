@@ -20,16 +20,16 @@ int main(void)
 
     Camera cam(512, 512, 90, cam_pos, u, v);
     */
-
+/*
     std::vector<Vector> v;
 
     const int size = 10;
     for (int i = 0; i < size; ++i)
     {
         v.push_back(Vector(i, size - i, (10 - size) % 5));
-    }
+    }*/
 
-    KdTree k(v.begin(), v.end(), false);
+//    KdTree k(v.begin(), v.end(), false);
     /*
     std::sort(v.begin(), v.end(), compare_y);
 

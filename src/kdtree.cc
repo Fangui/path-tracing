@@ -3,60 +3,49 @@
 
 #include "kdtree.hh"
 
-const std::function<bool (Vector, Vector)> func[3] = 
+const std::function<bool (Triangle, Triangle)> func[3] =
 {
-    [](Vector a, Vector b) { return a.x_ < b.x_; },
-    [](Vector a, Vector b) { return a.y_ < b.y_; },
-    [](Vector a, Vector b) { return a.z_ < b.z_; }
+    [](Triangle a, Triangle b) { return a.get_mean().x_ < b.get_mean().x_; },
+    [](Triangle a, Triangle b) { return a.get_mean().y_ < b.get_mean().y_; },
+    [](Triangle a, Triangle b) { return a.get_mean().z_ < b.get_mean().z_; }
 };
 
 static void get_extremum(float box[6], iterator_v beg,
-                                iterator_v end)
+                                       iterator_v end)
 { //FIXME
-    box[0] = (*beg).x_;
-    box[1] = (*beg).x_;
+    box[0] = (*beg).vertices[0].x_;
+    box[1] = (*beg).vertices[0].x_;
 
-    box[2] = (*beg).y_;
-    box[3] = (*beg).y_;
+    box[2] = (*beg).vertices[0].y_;
+    box[3] = (*beg).vertices[0].y_;
 
-    box[4] = (*beg).z_;
-    box[5] = (*beg).z_;
+    box[4] = (*beg).vertices[0].z_;
+    box[5] = (*beg).vertices[0].z_;
 
     ++beg;
     while (beg < end)
     {
-        if (box[0] > (*beg).x_)
-            box[0] = (*beg).x_;
+        for (unsigned i = 0; i < 3; ++i) //FIXME
+        {
+            if (box[0] > (*beg).vertices[i].x_)
+                box[0] = (*beg).vertices[i].x_;
 
-        if (box[1] < (*beg).x_)
-            box[1] = (*beg).x_;
+            if (box[1] < (*beg).vertices[i].x_)
+                box[1] = (*beg).vertices[i].x_;
 
-        if (box[2] > (*beg).y_)
-            box[2] = (*beg).y_;
+            if (box[2] > (*beg).vertices[i].y_)
+                box[2] = (*beg).vertices[i].y_;
 
-        if (box[3] < (*beg).y_)
-            box[3] = (*beg).y_;
+            if (box[3] < (*beg).vertices[i].y_)
+                box[3] = (*beg).vertices[i].y_;
 
-        if (box[4] > (*beg).z_)
-            box[4] = (*beg).z_;
+            if (box[4] > (*beg).vertices[i].z_)
+                box[4] = (*beg).vertices[i].z_;
 
-        if (box[5] < (*beg).z_)
-            box[5] = (*beg).z_;
+            if (box[5] < (*beg).vertices[i].z_)
+                box[5] = (*beg).vertices[i].z_;
+        }
         ++beg;
-    }
-}
-
-static void get_mean_vertices(std::vector<Vector> &v, 
-                       iterator_v beg,
-                       iterator_v end)
-{
-    while (beg < end)
-    {
-        float x = ((*beg).x_ + (*(beg + 1)).x_ + (*(beg + 2)).x_) / 3.f;
-        float y = ((*beg).y_ + (*(beg + 1)).y_ + (*(beg + 2)).y_) / 3.f;
-        float z = ((*beg).z_ + (*(beg + 1)).z_ + (*(beg + 2)).z_) / 3.f;
-        v.push_back(Vector(x, y, z));
-        beg += 3;
     }
 }
 
@@ -79,16 +68,7 @@ static unsigned get_longest_axis(float box[6])
 
 KdTree::KdTree(iterator_v beg, iterator_v end, bool is_vertices)
 {
-    if (is_vertices)
-    {
-        unsigned dist = std::distance(beg, end);
-        std::vector<Vector> v;
-        v.reserve(dist / 3);
-
-        get_mean_vertices(v, beg, end);
-    }
-    else
-        root_ = make_child(beg, end);
+    root_ = make_child(beg, end);
 }
 
 KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
@@ -99,7 +79,7 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
         this->beg = beg;
         this->end = end;
         left = nullptr;
-        right = nullptr; 
+        right = nullptr;
     }
     else
     {
