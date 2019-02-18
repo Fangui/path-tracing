@@ -2,9 +2,10 @@
 #include <iostream>
 #include <vector>
 
-#include "vector.hh"
 #include "camera.hh"
 #include "kdtree.hh"
+#include "parse.hh"
+#include "vector.hh"
 
 bool compare_y(Vector &a, Vector &b)
 {
@@ -20,24 +21,11 @@ int main(void)
 
     Camera cam(512, 512, 90, cam_pos, u, v);
     */
-/*
-    std::vector<Vector> v;
 
-    const int size = 10;
-    for (int i = 0; i < size; ++i)
-    {
-        v.push_back(Vector(i, size - i, (10 - size) % 5));
-    }*/
+    auto v = obj_to_vertices("IronMan.obj");
+    std::cout << v[0].vertices[0].x_ << '\n';
+    std::cout << v[v.size() - 1].vertices[2].y_ << '\n';
 
-//    KdTree k(v.begin(), v.end(), false);
-    /*
-    std::sort(v.begin(), v.end(), compare_y);
-
-    for (int i = 0; i < size; ++i)
-        std::cout << v[i].x_ << '|';
-
-    std::cout << std::endl;
-    */
-
+    KdTree k(v.begin(), v.end(), true);
 
 }

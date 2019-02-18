@@ -31,5 +31,9 @@ struct Triangle
         return Vector(x / 3.f, y / 3.f, z / 3.f);
     }
 
+    bool intersect(const Vector &o,
+                  const Vector &ray,
+                   Vector& out);
+
     Vector vertices[3];
 };

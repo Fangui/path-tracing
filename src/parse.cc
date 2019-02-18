@@ -1,3 +1,5 @@
+#include "kdtree.hh"
+#include "parse.hh"
 #include "triangle.hh"
 
 #include <fstream>
@@ -56,12 +58,4 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
     }
 
     return v;
-}
-
-#include <iostream>
-int main()
-{
-    auto v = obj_to_vertices("IronMan.obj");
-    std::cout << v[0].vertices[0].x_ << '\n';
-    std::cout << v[v.size() - 1].vertices[2].y_ << '\n';
 }

@@ -14,12 +14,26 @@ Vector Vector::operator+=(const Vector &rhs)
     return *this;
 }
 
-Vector Vector::operator*(int lambda) const
+Vector Vector::operator-(const Vector &rhs) const
+{
+    return Vector(x_, y_, z_ ) -= rhs;
+}
+
+Vector Vector::operator-=(const Vector &rhs)
+{
+    x_ -= rhs.x_;
+    y_ -= rhs.y_;
+    z_ -= rhs.z_;
+
+    return *this;
+}
+
+Vector Vector::operator*(float lambda) const
 {
     return Vector(x_, y_, z_ ) *= lambda;
 }
 
-Vector Vector::operator*=(int lambda)
+Vector Vector::operator*=(float lambda)
 {
     x_ *= lambda;
     y_ *= lambda;
@@ -75,3 +89,9 @@ Vector Vector::norm_inplace(void)
 
     return *this;
 }
+
+float Vector::dot_product(const Vector &rhs) const
+{
+    return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_;
+}
+
