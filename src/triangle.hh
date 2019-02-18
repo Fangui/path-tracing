@@ -4,16 +4,17 @@
 
 struct Triangle
 {
-    Triangle(Vector &a, Vector &b, Vector &c)
+    Triangle(Vector &v1, Vector &v2, Vector &v3, 
+             Vector &n1, Vector &n2, Vector &n3)
     { //FIXME
-        vertices[0] = a;
-        vertices[1] = b;
-        vertices[2] = c;
+        vertices[0] = v1;
+        vertices[1] = v2;
+        vertices[2] = v3;
+    
+        normal[0] = n1;
+        normal[1] = n2;
+        normal[2] = n3;
     }
-
-    /*: vertices[0](a),
-                                vertices[1](b), vertices[2](c) {};
-*/
 
     Vector get_mean() //FIXME
     {
@@ -36,4 +37,5 @@ struct Triangle
                    Vector& out);
 
     Vector vertices[3];
+    Vector normal[3];
 };

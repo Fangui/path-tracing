@@ -23,9 +23,5 @@ int main(void)
     */
 
     auto v = obj_to_vertices("IronMan.obj");
-    std::cout << v[0].vertices[0].x_ << '\n';
-    std::cout << v[v.size() - 1].vertices[2].y_ << '\n';
-
-    KdTree k(v.begin(), v.end(), true);
 
 }

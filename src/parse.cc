@@ -2,6 +2,7 @@
 #include "parse.hh"
 #include "triangle.hh"
 
+#include <iostream>
 #include <fstream>
 #include <vector>
 
@@ -18,18 +19,21 @@ inline bool is_number(char c)
 
 std::vector<Triangle> obj_to_vertices(const std::string &s)
 {
-    std::vector<Triangle> v;
+    std::vector<Vector> v;
+    std::vector<Vector> vn;
+    std::vector<Triangle> vt;
+
     std::ifstream in(s);
 
     std::string line;
 
-    float val[9];
+    float val[3];
     unsigned cpt = 0;
     while (std::getline(in, line))
     {
-        if (line[0] == 'v' && line[1] == ' ') // vertices
+        cpt = 0;
+        if (line[0] == 'v') // vertices
         {
-
             for (unsigned i = 2; i < line.size(); ++i)
             {
                 std::string s;
@@ -43,19 +47,30 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
                     s += line[i];
                     ++i;
                 }
+
                 val[cpt++] = stof(s);
             }
         }
-        if (cpt == 9)
+
+        if (cpt == 3)
         {
-            cpt = 0;
-            Vector v1(val[0], val[1], val[2]);
-            Vector v2(val[3], val[4], val[5]);
-            Vector v3(val[6], val[7], val[8]);
-            Triangle t(v1, v2, v3);
-            v.push_back(t);
+            Vector vect(val[0], val[1], val[2]);
+            if (line[1] == 'n') // vn
+                vn.push_back(vect);
+            else if (line[1] == ' ')
+                v.push_back(vect); // v
         }
     }
 
-    return v;
+    vt.reserve(v.size() / 3);
+    for (unsigned i = 0; i < v.size(); i += 3)
+    {
+        unsigned idx = i / 3;
+        Triangle t(v[idx], v[idx + 1], v[idx + 2], 
+                   vn[idx], vn[idx + 1], vn[idx + 2]);
+
+        vt.push_back(t);
+    }
+
+    return vt;
 }
