@@ -2,7 +2,7 @@
 
 bool Triangle::intersect(const Vector &o,
                          const Vector &ray,
-                         Vector &out)
+                         Vector &out) const
 {
     const float EPSILON = 0.0000001;
 

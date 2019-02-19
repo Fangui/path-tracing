@@ -23,7 +23,7 @@ public:
     float dot_product(const Vector &rhs) const;
 
 //private:
-    inline float get_dist() { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); };
+    float get_dist() { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); };
     float x_;
     float y_;
     float z_;

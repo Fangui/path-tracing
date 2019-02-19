@@ -4,13 +4,13 @@
 
 struct Triangle
 {
-    Triangle(Vector &v1, Vector &v2, Vector &v3, 
+    Triangle(Vector &v1, Vector &v2, Vector &v3,
              Vector &n1, Vector &n2, Vector &n3)
     { //FIXME
         vertices[0] = v1;
         vertices[1] = v2;
         vertices[2] = v3;
-    
+
         normal[0] = n1;
         normal[1] = n2;
         normal[2] = n3;
@@ -33,8 +33,8 @@ struct Triangle
     }
 
     bool intersect(const Vector &o,
-                  const Vector &ray,
-                   Vector& out);
+                   const Vector &ray,
+                   Vector& out) const;
 
     Vector vertices[3];
     Vector normal[3];
