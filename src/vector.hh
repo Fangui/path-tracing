@@ -22,8 +22,16 @@ public:
 
     float dot_product(const Vector &rhs) const;
 
-//private:
     float get_dist() { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); };
+
+    void set(float x, float y, float z)
+    {
+        x_ = x;
+        y_ = y;
+        z_ = z;
+    }
+
+//private:
     float x_;
     float y_;
     float z_;

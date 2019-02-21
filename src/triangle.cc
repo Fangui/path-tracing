@@ -14,10 +14,10 @@ bool Triangle::intersect(const Vector &o,
     Vector edge2 = vertex2 - vertex0;
     Vector h = ray.cross_product(edge2);
 
-    float a = edge1.dot_product(h); //FIXME
-    if (a > -EPSILON && a < EPSILON)
+    float det = edge1.dot_product(h); //FIXME
+    if (det > -EPSILON && det < EPSILON)
         return false;    // This ray is parallel to this triangle.
-    float f = 1.f / a;
+    float f = 1.f / det;
     Vector s = o - vertex0;
     float u = f * (s.dot_product(h));
 

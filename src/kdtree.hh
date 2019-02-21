@@ -21,9 +21,10 @@ public:
 
  //       Triangle bounding_box;
     //    Vector &vertex;
-        float box[6];
+        float box[6]; // pair min : impair max
         iterator_v beg;
         iterator_v end;
+        unsigned char axis;
     };
 
     using childPtr = std::shared_ptr<KdNode>;
@@ -31,7 +32,6 @@ public:
     KdTree(iterator_v beg, iterator_v end, bool is_vertixes);
 
 private:
-
     static inline auto make_child()
     {
         return std::make_shared<KdNode>();

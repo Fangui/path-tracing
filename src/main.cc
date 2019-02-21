@@ -39,54 +39,29 @@ Vector intersect(std::vector<Triangle> &v, const Camera &cam,
         }
     }
     if (min_dist != -1)
-        return Vector(255, 0, 0);
+        return Vector(1, 0, 0);
     return Vector(0, 0, 0);
 }
 
-int main(void)
+bool inside(const Vector &a,
+            const Vector &b,
+            const Vector &c,
+            const Vector &ray)
 {
-    int width = 512;
-    int height = 512;
+    Vector b_a = a - b;
+    Vector b_c = c - b;
+    Vector b_d = ray - b;
 
-    Vector cam_pos(0, 0, -4);
-    Vector u(1, 0, 0);
-    Vector v(0, 1, 0);
+    Vector e = b_c.cross_product(b_a);
+    Vector f = b_d.cross_product(b_a);
 
-    Camera cam(width, height, 90, cam_pos, u, v);
+    return e.dot_product(f) > 0;
+}
 
-    u = u.norm_inplace();
-    v = v.norm_inplace();
-
-    Vector w = v.cross_product(u);
-
-    float val = tanf(cam.fov_ * M_PI / 360);
-    val = val == 0.0 ? 0.0001 : val;
-    float L = width / 2;
-    L /= val;
-
-    auto vertices = obj_to_vertices("triangle.svati");
-
-    std::vector<Vector> vect;
-    vect.reserve(width * height);
-
-    Vector C = cam_pos + (w * L);
-
-    for (int i = -width / 2; i < width / 2; ++i)
-    {
-        for (int j = -height / 2; j < height / 2; ++j)
-        {
-
-            Vector a = u * i;
-            Vector b = v * j;
-
-            Vector o = a + C + b;
-            Vector dir = o - cam_pos;
-
-            vect.push_back(intersect(vertices, cam, dir, o));
-        }
-    }
-
-    std::ofstream out ("out.ppm");
+int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
+              int width, int height)
+{
+    std::ofstream out (out_path);
     unsigned index = 0;
     if (out.is_open())
     {
@@ -94,9 +69,9 @@ int main(void)
         out << width << " " << height << '\n';
         out << 255 << '\n';
 
-        for (int i = -width / 2; i < width / 2; ++i)
+        for (int i = 0; i < width; ++i)
         {
-            for (int j = -height / 2; j < height / 2; ++j)
+            for (int j = 0; j < height; ++j)
             {
                 int r = vect[index].x_ * 255.0;
                 int g = vect[index].y_ * 255.0;
@@ -107,6 +82,79 @@ int main(void)
         }
     }
     else
+    {
         std::cerr << "Error while write \n";
+        return 1;
+    }
     return 0;
+}
+
+int main(void)
+{
+    int width = 512;
+    int height = 512;
+    float fov = 90.f;
+
+    Vector cam_pos(0, 0, -4);
+    Vector u(1, 0, 0);
+    Vector v(0, -1, 0);
+
+    Camera cam(width, height, fov, cam_pos, u, v);
+
+    Vector u_n = u.norm();
+    Vector w = v.norm();
+    w = w.cross_product_inplace(u_n);
+
+    float val = tanf(cam.fov_ * M_PI / 360);
+    val = val == 0.0 ? 0.0001 : val;
+    float L = width / 2;
+    L /= val; // distance between camera and center of screen
+
+    auto vertices = obj_to_vertices("triangle.svati");
+    std::cout << vertices.size() << std::endl;
+
+    std::vector<Vector> vect(width * height);
+
+    Vector C = cam_pos + (w * L); // center
+
+#pragma omp parallel for schedule (dynamic)
+    for (int i = -width / 2; i < width / 2; ++i)
+    {
+        for (int j = -height / 2; j < height / 2; ++j)
+        {
+            unsigned idx = (i + width / 2) * height + (j + height / 2);
+            Vector o = u * j;
+            Vector b = v * i;
+            o += C;
+            o += b;
+
+            Vector dir = o - cam_pos;
+
+            Triangle tri = vertices[0];
+            float dist = -tri.normal[0].x_ * tri.vertices[0].x_
+                        - tri.normal[0].y_ * tri.vertices[1].y_
+                        - tri.normal[0].z_ * tri.vertices[2].z_;
+
+            float t = -tri.normal[0].dot_product(cam_pos) + dist;
+            t /= tri.normal[0].dot_product(dir);
+
+            Vector inter = o * t + cam_pos;
+
+
+            if (inside(tri.vertices[0], tri.vertices[1], tri.vertices[2], inter)
+             && inside(tri.vertices[1], tri.vertices[2], tri.vertices[0], inter)
+             && inside(tri.vertices[0], tri.vertices[2], tri.vertices[1], inter))
+            {
+                float distance = (inter - cam_pos).get_dist();
+             //   vect.push_back(Vector(0.8 * 0.65, 0,0));
+                vect[idx].set(0.8 * 0.65, 0, 0);
+            }
+            else
+                vect[idx].set(0,0,0);
+
+            //vect.push_back(intersect(vertices, cam, dir, o));
+        }
+    }
+    return write_ppm("out.ppm", vect, width, height);
+
 }

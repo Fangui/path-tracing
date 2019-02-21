@@ -27,7 +27,7 @@ static void get_extremum(float box[6], iterator_v beg,
     {
         for (unsigned i = 0; i < 3; ++i) //FIXME
         {
-            if (box[0] > (*beg).vertices[i].x_)
+            if (box[0] > beg->vertices[i].x_)
                 box[0] = (*beg).vertices[i].x_;
 
             if (box[1] < (*beg).vertices[i].x_)
@@ -84,7 +84,7 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
     else
     {
         get_extremum(box, beg, end);
-        unsigned axis = get_longest_axis(box);
+        axis = get_longest_axis(box);
 
         __gnu_parallel::sort(beg, end, func[axis]);
         iterator_v med = beg + dist / 2;
