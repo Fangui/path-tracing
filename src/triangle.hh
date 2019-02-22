@@ -2,6 +2,8 @@
 
 #include "vector.hh"
 
+#define EPSILON 1.19209290E-07F
+
 struct Triangle
 {
     Triangle(Vector &v1, Vector &v2, Vector &v3,

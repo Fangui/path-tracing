@@ -1,8 +1,7 @@
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <vector>
-
-#include <fstream>
 
 #include "camera.hh"
 #include "kdtree.hh"
@@ -19,14 +18,7 @@ Vector intersect(std::vector<Triangle> &v, const Camera &cam,
     for (unsigned i = 0; i < v.size(); ++i)
     {
         const Triangle &t = v[i];
-        /*
-        float dist = -t.normal[0].x * t.vertices[0].x
-                    - t.normal[0].y * t.vertices[0].y
-                    - t.normal[0].z * t.vertices[0].z;
-        */
-      //  float tmp = -t[n].dot_product(cam->pos_) + dist;
-      //  tmp /= t.normal[0].dot_product(dir);
-
+        
         Vector out(0, 0, 0);
         if (t.intersect(o, dir, out))
         {
@@ -41,21 +33,6 @@ Vector intersect(std::vector<Triangle> &v, const Camera &cam,
     if (min_dist != -1)
         return Vector(1, 0, 0);
     return Vector(0, 0, 0);
-}
-
-bool inside(const Vector &a,
-            const Vector &b,
-            const Vector &c,
-            const Vector &ray)
-{
-    Vector b_a = a - b;
-    Vector b_c = c - b;
-    Vector b_d = ray - b;
-
-    Vector e = b_c.cross_product(b_a);
-    Vector f = b_d.cross_product(b_a);
-
-    return e.dot_product(f) > 0;
 }
 
 int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
@@ -111,6 +88,8 @@ int main(void)
     L /= val; // distance between camera and center of screen
 
     auto vertices = obj_to_vertices("triangle.svati");
+
+
     std::cout << vertices.size() << std::endl;
 
     std::vector<Vector> vect(width * height);
@@ -128,31 +107,8 @@ int main(void)
             o += C;
             o += b;
 
-            Vector dir = o - cam_pos;
-
-            Triangle tri = vertices[0];
-            float dist = -tri.normal[0].x_ * tri.vertices[0].x_
-                        - tri.normal[0].y_ * tri.vertices[1].y_
-                        - tri.normal[0].z_ * tri.vertices[2].z_;
-
-            float t = -tri.normal[0].dot_product(cam_pos) + dist;
-            t /= tri.normal[0].dot_product(dir);
-
-            Vector inter = o * t + cam_pos;
-
-
-            if (inside(tri.vertices[0], tri.vertices[1], tri.vertices[2], inter)
-             && inside(tri.vertices[1], tri.vertices[2], tri.vertices[0], inter)
-             && inside(tri.vertices[0], tri.vertices[2], tri.vertices[1], inter))
-            {
-                float distance = (inter - cam_pos).get_dist();
-             //   vect.push_back(Vector(0.8 * 0.65, 0,0));
-                vect[idx].set(0.8 * 0.65, 0, 0);
-            }
-            else
-                vect[idx].set(0,0,0);
-
-            //vect.push_back(intersect(vertices, cam, dir, o));
+            Vector dir = cam_pos - o;
+            vect[idx] = intersect(vertices, cam, dir, o);
         }
     }
     return write_ppm("out.ppm", vect, width, height);

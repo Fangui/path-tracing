@@ -19,8 +19,6 @@ public:
         std::shared_ptr<KdNode> left;
         std::shared_ptr<KdNode> right;
 
- //       Triangle bounding_box;
-    //    Vector &vertex;
         float box[6]; // pair min : impair max
         iterator_v beg;
         iterator_v end;
@@ -29,7 +27,7 @@ public:
 
     using childPtr = std::shared_ptr<KdNode>;
 
-    KdTree(iterator_v beg, iterator_v end, bool is_vertixes);
+    KdTree(iterator_v beg, iterator_v end);
 
 private:
     static inline auto make_child()

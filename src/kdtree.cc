@@ -10,40 +10,36 @@ const std::function<bool (Triangle, Triangle)> func[3] =
     [](Triangle a, Triangle b) { return a.get_mean().z_ < b.get_mean().z_; }
 };
 
+#define print_reg(name) \
+    printf("%s: 0x%llx\n", #name, regs.name)
+
+#define GET_MIN_MAX(idx, coord) \
+    if (box[idx] > beg->vertices[i].coord) \
+        box[idx] = beg->vertices[i].coord; \
+    if (box[idx + 1] > beg->vertices[i].coord) \
+        box[idx + 1] = beg->vertices[i].coord;
+
 static void get_extremum(float box[6], iterator_v beg,
                                        iterator_v end)
-{ //FIXME
-    box[0] = (*beg).vertices[0].x_;
-    box[1] = (*beg).vertices[0].x_;
+{
+    box[0] = beg->vertices[0].x_;
+    box[1] = beg->vertices[0].x_;
 
-    box[2] = (*beg).vertices[0].y_;
-    box[3] = (*beg).vertices[0].y_;
+    box[2] = beg->vertices[0].y_;
+    box[3] = beg->vertices[0].y_;
 
-    box[4] = (*beg).vertices[0].z_;
-    box[5] = (*beg).vertices[0].z_;
+    box[4] = beg->vertices[0].z_;
+    box[5] = beg->vertices[0].z_;
 
     ++beg;
+
     while (beg < end)
     {
-        for (unsigned i = 0; i < 3; ++i) //FIXME
+        for (unsigned i = 0; i < 3; ++i)
         {
-            if (box[0] > beg->vertices[i].x_)
-                box[0] = (*beg).vertices[i].x_;
-
-            if (box[1] < (*beg).vertices[i].x_)
-                box[1] = (*beg).vertices[i].x_;
-
-            if (box[2] > (*beg).vertices[i].y_)
-                box[2] = (*beg).vertices[i].y_;
-
-            if (box[3] < (*beg).vertices[i].y_)
-                box[3] = (*beg).vertices[i].y_;
-
-            if (box[4] > (*beg).vertices[i].z_)
-                box[4] = (*beg).vertices[i].z_;
-
-            if (box[5] < (*beg).vertices[i].z_)
-                box[5] = (*beg).vertices[i].z_;
+            GET_MIN_MAX(0, x_);
+            GET_MIN_MAX(2, y_);
+            GET_MIN_MAX(4, z_);
         }
         ++beg;
     }
@@ -66,7 +62,7 @@ static unsigned get_longest_axis(float box[6])
     return 2;
 }
 
-KdTree::KdTree(iterator_v beg, iterator_v end, bool is_vertices)
+KdTree::KdTree(iterator_v beg, iterator_v end)
 {
     root_ = make_child(beg, end);
 }
