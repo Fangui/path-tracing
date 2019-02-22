@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <parallel/algorithm>
+#include <iostream>
 
 #include "kdtree.hh"
 
@@ -10,13 +11,10 @@ const std::function<bool (Triangle, Triangle)> func[3] =
     [](Triangle a, Triangle b) { return a.get_mean().z_ < b.get_mean().z_; }
 };
 
-#define print_reg(name) \
-    printf("%s: 0x%llx\n", #name, regs.name)
-
 #define GET_MIN_MAX(idx, coord) \
     if (box[idx] > beg->vertices[i].coord) \
         box[idx] = beg->vertices[i].coord; \
-    if (box[idx + 1] > beg->vertices[i].coord) \
+    if (box[idx + 1] < beg->vertices[i].coord) \
         box[idx + 1] = beg->vertices[i].coord;
 
 static void get_extremum(float box[6], iterator_v beg,
@@ -43,6 +41,11 @@ static void get_extremum(float box[6], iterator_v beg,
         }
         ++beg;
     }
+
+    for (unsigned i = 0; i < 6; i += 2) // expand bounding box
+        box[i] -= 0.1;
+    for (unsigned i = 1; i < 6; i += 2)
+        box[i] += 0.1;
 }
 
 static unsigned get_longest_axis(float box[6])
@@ -70,7 +73,8 @@ KdTree::KdTree(iterator_v beg, iterator_v end)
 KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
 {
     unsigned dist = std::distance(beg, end);
-    if (dist < 20)
+    get_extremum(box, beg, end);
+    if (dist < 10)
     {
         this->beg = beg;
         this->end = end;
@@ -79,16 +83,90 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
     }
     else
     {
-        get_extremum(box, beg, end);
         axis = get_longest_axis(box);
 
         __gnu_parallel::sort(beg, end, func[axis]);
         iterator_v med = beg + dist / 2;
 
+        left = make_child(beg, med);
+        right = make_child(med + 1, end);
+
         this->beg = med;
         this->end = med + 1;
+    }
+}
 
-        left = make_child(beg, med);
-        right = make_child(med, end);
+bool KdTree::KdNode::inside_box(const Vector &ray, const Vector &origin) const
+{
+    float tmin = (box[0] - origin.x_) / ray.x_;
+    float tmax = (box[1] - origin.x_) / ray.x_;
+
+    if (tmin > tmax)
+        std::swap(tmin, tmax);
+
+    float tymin = (box[2] - origin.y_) / ray.y_;
+    float tymax = (box[3] - origin.y_) / ray.y_;
+
+    if (tymin > tymax)
+        std::swap(tymin, tymax);
+
+    if ((tmin > tymax) || (tymin > tmax))
+        return false;
+
+    if (tymin > tmin)
+        tmin = tymin;
+
+    if (tymax < tmax)
+        tmax = tymax;
+
+    float tzmin = (box[4] - origin.z_) / ray.z_;
+    float tzmax = (box[5] - origin.z_) / ray.z_;
+
+    if (tzmin > tzmax)
+        std::swap(tzmin, tzmax);
+
+    if ((tmin > tzmax) || (tzmin > tmax))
+        return false;
+
+    return true;
+}
+
+#define SEARCH(coord) \
+    if (left != nullptr) \
+        left.get()->search(origin, ray, cam, dist, last_inter);   \
+    if (right != nullptr) \
+        right.get()->search(origin, ray, cam, dist, last_inter);
+
+void KdTree::KdNode::search(const Vector &origin,
+                          const Vector &ray, const Camera &cam,
+                          float &dist, Vector &last_inter)
+ {
+    if (inside_box(ray, origin))
+    {
+        Vector inter(0, 0, 0);
+        for (auto it = beg; it < end; ++it)
+        {
+            if (it->intersect(origin, ray, inter))
+            {
+                float distance = (inter - cam.pos_).get_dist();
+                if (dist == -1 || dist > distance)
+                    dist = distance;
+
+                last_inter = inter;
+            }
+        }
+
+        if (axis == 0)
+        {
+            SEARCH(x_);
+        }
+        else if (axis == 1)
+        {
+            SEARCH(y_);
+        }
+        else if (axis == 2)
+        {
+            SEARCH(z_);
+        }
     }
 }

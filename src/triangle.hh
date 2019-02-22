@@ -16,10 +16,7 @@ struct Triangle
         normal[0] = n1;
         normal[1] = n2;
         normal[2] = n3;
-    }
 
-    Vector get_mean() //FIXME
-    {
         float x = 0.f;
         float y = 0.f;
         float z = 0.f;
@@ -30,8 +27,12 @@ struct Triangle
             y += vertices[i].y_;
             z += vertices[i].z_;
         }
+        mean = Vector(x / 3.f, y / 3.f, z / 3.f);
+    }
 
-        return Vector(x / 3.f, y / 3.f, z / 3.f);
+    Vector get_mean(void) // return barycentre
+    {
+        return mean;
     }
 
     bool intersect(const Vector &o,
@@ -40,4 +41,5 @@ struct Triangle
 
     Vector vertices[3];
     Vector normal[3];
+    Vector mean;
 };

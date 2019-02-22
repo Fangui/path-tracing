@@ -8,33 +8,6 @@
 #include "parse.hh"
 #include "vector.hh"
 
-Vector intersect(std::vector<Triangle> &v, const Camera &cam,
-                 Vector &dir, Vector &o)
-{
-
-    float min_dist = -1;
-    int min_idx = -1;
-
-    for (unsigned i = 0; i < v.size(); ++i)
-    {
-        const Triangle &t = v[i];
-        
-        Vector out(0, 0, 0);
-        if (t.intersect(o, dir, out))
-        {
-            float distance = (out - cam.pos_).get_dist();
-            if (min_dist == -1 || min_dist > distance)
-            {
-                min_dist = distance;
-                min_idx = i;
-            }
-        }
-    }
-    if (min_dist != -1)
-        return Vector(1, 0, 0);
-    return Vector(0, 0, 0);
-}
-
 int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
               int width, int height)
 {
@@ -66,11 +39,15 @@ int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
     return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    std::string path_input = "cube.svati";
+    if (argc > 1)
+        path_input = argv[1];
+
     int width = 512;
     int height = 512;
-    float fov = 90.f;
+    float fov = 70.f;
 
     Vector cam_pos(0, 0, -4);
     Vector u(1, 0, 0);
@@ -87,10 +64,11 @@ int main(void)
     float L = width / 2;
     L /= val; // distance between camera and center of screen
 
-    auto vertices = obj_to_vertices("triangle.svati");
+    auto vertices = obj_to_vertices(path_input);
 
-
+    auto tree = KdTree(vertices.begin(), vertices.end());
     std::cout << vertices.size() << std::endl;
+    std::cout << tree.size() << std::endl;
 
     std::vector<Vector> vect(width * height);
 
@@ -108,7 +86,15 @@ int main(void)
             o += b;
 
             Vector dir = cam_pos - o;
-            vect[idx] = intersect(vertices, cam, dir, o);
+            float dist = -1;
+            Vector out(0, 0, 0);
+            tree.search(o, dir, cam, dist, out);
+            if (dist == -1)
+            {
+                vect[idx] = Vector(0, 0, 0);
+            }
+            else
+                vect[idx] = Vector(1, 0, 0);
         }
     }
     return write_ppm("out.ppm", vect, width, height);
