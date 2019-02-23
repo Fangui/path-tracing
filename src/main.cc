@@ -75,8 +75,9 @@ int main(int argc, char *argv[])
     t2 = omp_get_wtime();
     std::cout << "Time build kdTree: " << t2 - t1 << "s\n";
 
-    std::cout << vertices.size() << std::endl;
+  //  std::cout << vertices.size() << std::endl;
     std::cout << tree.size() << std::endl;
+//    tree.print_infixe();
 
     std::vector<Vector> vect(width * height);
 

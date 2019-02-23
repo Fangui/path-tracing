@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 class Vector
 {
@@ -36,3 +37,5 @@ public:
     float y_;
     float z_;
 };
+
+std::ostream& operator <<(std::ostream& os, const Vector &v);
