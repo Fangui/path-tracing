@@ -14,12 +14,6 @@ inline bool is_blank(char c)
     return c == ' ' || c == '\t' || c == '\n';
 }
 
-/*
-inline bool is_number(char c)
-{
-    return (c >= '0' && c <= '9') || c == '.';
-}*/
-
 std::map<std::string, Material> parse_materials(const std::string &s)
 {
   std::map<std::string, Material> map;
@@ -111,4 +105,35 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
     }
 
     return vt;
+}
+
+int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
+              int width, int height)
+{
+    std::ofstream out (out_path);
+    unsigned index = 0;
+    if (out.is_open())
+    {
+        out << "P3\n";
+        out << width << " " << height << '\n';
+        out << 255 << '\n';
+
+        for (int i = 0; i < width; ++i)
+        {
+            for (int j = 0; j < height; ++j)
+            {
+                int r = vect[index].x_ * 255.0;
+                int g = vect[index].y_ * 255.0;
+                int b = vect[index++].z_ * 255.0;
+                out << r << " " << g << " " << b << "  ";
+            }
+            out << '\n';
+        }
+    }
+    else
+    {
+        std::cerr << "Error while write \n";
+        return 1;
+    }
+    return 0;
 }

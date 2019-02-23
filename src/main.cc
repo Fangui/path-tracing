@@ -9,42 +9,17 @@
 #include "parse.hh"
 #include "vector.hh"
 
-int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
-              int width, int height)
-{
-    std::ofstream out (out_path);
-    unsigned index = 0;
-    if (out.is_open())
-    {
-        out << "P3\n";
-        out << width << " " << height << '\n';
-        out << 255 << '\n';
-
-        for (int i = 0; i < width; ++i)
-        {
-            for (int j = 0; j < height; ++j)
-            {
-                int r = vect[index].x_ * 255.0;
-                int g = vect[index].y_ * 255.0;
-                int b = vect[index++].z_ * 255.0;
-                out << r << " " << g << " " << b << "  ";
-            }
-            out << '\n';
-        }
-    }
-    else
-    {
-        std::cerr << "Error while write \n";
-        return 1;
-    }
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
-    std::string path_input = "cube.svati";
+    std::string path_obj = "cube.svati";
+    std::string path_mat = "cube.svati";
+
     if (argc > 1)
-        path_input = argv[1];
+    {
+        path_obj = argv[1];
+        if (argc > 2)
+            path_mat = argv[2];
+    }
 
     int width = 512;
     int height = 512;
@@ -66,7 +41,16 @@ int main(int argc, char *argv[])
     L /= val; // distance between camera and center of screen
 
     double t1 = omp_get_wtime();
-    auto vertices = obj_to_vertices(path_input);
+    auto map = parse_materials(path_mat);
+    std::vector<std::string> mat_name;
+    mat_name.reserve(map.size());
+    for (const auto &it : map)
+    {
+        std::cout << it.first << std::endl;
+        mat_name.push_back(it.first);
+    }
+
+    auto vertices = obj_to_vertices(path_obj);
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
 
