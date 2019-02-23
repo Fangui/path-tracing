@@ -9,6 +9,21 @@
 
 using iterator_v = std::vector<Triangle>::iterator;
 
+struct Ray
+{
+    Ray(Vector o, Vector dir) : o(o), dir(dir)
+    {
+        inv = Vector(1 / dir.x_, 1 / dir.y_, 1 / dir.z_);
+        sign[0] = inv.x_ < 0;
+        sign[1] = inv.y_ < 0;
+        sign[2] = inv.z_ < 0;
+    };
+    Vector o;
+    Vector dir;
+    Vector inv;
+    short sign[3];
+};
+
 class KdTree
 {
 public:
@@ -21,15 +36,14 @@ public:
         std::shared_ptr<KdNode> right;
 
         float box[6]; // pair min : impair max
-        iterator_v beg; // beg is median of axis 
+        iterator_v beg; // beg is median of axis
         iterator_v end; // end = beg + 1 if not leaf
         unsigned char axis = 0;
 
-        void search(const Vector &origin,
-                    const Vector &ray, const Camera &cam,
+        void search(Ray &ray, const Camera &cam,
                     float &dist, Vector &last_inter);
 
-        bool inside_box(const Vector &ray, const Vector &origin) const;
+        bool inside_box(const Ray &ray) const;
 
         unsigned size(void)
         {
@@ -50,7 +64,8 @@ public:
                     const Vector &ray, const Camera &cam,
                     float &dist, Vector &last_inter)
     {
-        root_.get()->search(origin, ray, cam, dist, last_inter);
+        Ray r(origin, ray);
+        root_.get()->search(r, cam, dist, last_inter);
     }
 
     unsigned size(void)

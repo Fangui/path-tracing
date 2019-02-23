@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <omp.h>
 
 #include "camera.hh"
 #include "kdtree.hh"
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
     int height = 512;
     float fov = 70.f;
 
-    Vector cam_pos(0, 0, -4);
+    Vector cam_pos(0, 1.5, -5);
     Vector u(1, 0, 0);
     Vector v(0, -1, 0);
 
@@ -64,9 +65,16 @@ int main(int argc, char *argv[])
     float L = width / 2;
     L /= val; // distance between camera and center of screen
 
+    double t1 = omp_get_wtime();
     auto vertices = obj_to_vertices(path_input);
+    double t2 = omp_get_wtime();
+    std::cout << "Time to parse file: " << t2 - t1 << "s\n";
 
+    t1 = omp_get_wtime();
     auto tree = KdTree(vertices.begin(), vertices.end());
+    t2 = omp_get_wtime();
+    std::cout << "Time build kdTree: " << t2 - t1 << "s\n";
+
     std::cout << vertices.size() << std::endl;
     std::cout << tree.size() << std::endl;
 
@@ -74,6 +82,7 @@ int main(int argc, char *argv[])
 
     Vector C = cam_pos + (w * L); // center
 
+    t1 = omp_get_wtime();
 #pragma omp parallel for schedule (dynamic)
     for (int i = -width / 2; i < width / 2; ++i)
     {
@@ -89,14 +98,14 @@ int main(int argc, char *argv[])
             float dist = -1;
             Vector out(0, 0, 0);
             tree.search(o, dir, cam, dist, out);
-            if (dist == -1)
-            {
+            if (dist == -1) // not found
                 vect[idx] = Vector(0, 0, 0);
-            }
             else
                 vect[idx] = Vector(1, 0, 0);
         }
     }
+    t2 = omp_get_wtime();
+    std::cout << "Time raytracing: " << t2 - t1 << "s\n";
     return write_ppm("out.ppm", vect, width, height);
 
 }
