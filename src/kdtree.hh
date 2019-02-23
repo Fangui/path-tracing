@@ -55,6 +55,23 @@ public:
 
             return res;
         }
+
+        void print_infixe(void)
+        {
+            if (left)
+                left.get()->print_infixe();
+
+            std::cout << "etremum: ";
+            for (unsigned i = 0; i < 6; ++i)
+                std::cout << box[i] << " ";
+            std::cout << '\n';
+            for (auto it = beg; it < end; ++it)
+            {
+                std::cout << it->get_mean() << '\n';
+            }
+            if (right)
+                right.get()->print_infixe();
+        }
     };
 
     using childPtr = std::shared_ptr<KdNode>;
@@ -66,6 +83,11 @@ public:
     {
         Ray r(origin, ray);
         root_.get()->search(r, cam, dist, last_inter);
+    }
+
+    void print_infixe()
+    {
+        root_.get()->print_infixe();
     }
 
     unsigned size(void)

@@ -95,3 +95,7 @@ float Vector::dot_product(const Vector &rhs) const
     return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_;
 }
 
+std::ostream& operator <<(std::ostream& os, const Vector &v)
+{
+    return os << "x: " << v.x_ << " y: " << v.y_ << " z: " << v.z_;
+}
