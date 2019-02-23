@@ -1,7 +1,7 @@
 CXX ?= g++
-CXXFLAGS += -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp
+CXXFLAGS += -g -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp
 
-SRC = main.cc vector.cc kdtree.cc triangle.cc parse.cc
+SRC = main.cc vector.cc kdtree.cc triangle.cc material.cc parse.cc
 OBJS = ${SRC:.cc=.o}
 BIN = main
 

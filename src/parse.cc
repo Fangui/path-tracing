@@ -1,10 +1,13 @@
 #include "kdtree.hh"
 #include "parse.hh"
 #include "triangle.hh"
+#include "material.hh"
 
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include <vector>
+#include <map>
 
 inline bool is_blank(char c)
 {
@@ -17,8 +20,43 @@ inline bool is_number(char c)
     return (c >= '0' && c <= '9') || c == '.';
 }*/
 
+std::map<std::string, Material> parse_materials(const std::string &s)
+{
+  std::map<std::string, Material> map;
+  std::string name;
+  float ns, ni, d;
+  Vector ka, ks, kd, ke;
+  int illum;
+
+  std::ifstream in(s.substr(0, s.length() - 3) + "mtl");
+  std::string line;
+
+  while (std::getline(in, line))
+  {
+    if (line.substr(0, 6) == "newmtl")
+    {
+      std::string trash;
+      name = line.substr(7, line.length());
+      in >> trash >> ns;
+      in >> trash >> ka.x_ >> ka.y_ >> ka.z_;
+      in >> trash >> kd.x_ >> kd.y_ >> kd.z_;
+      in >> trash >> ks.x_ >> ks.y_ >> ks.z_;
+      in >> trash >> ke.x_ >> ke.y_ >> ke.z_;
+      in >> trash >> ni;
+      in >> trash >> d;
+      in >> trash >> illum;
+      Material mat(ns, ka, kd, ks, ke, ni, d, illum);
+      std::cout << "newmtl " << name << std::endl;
+      mat.dump();
+      map.emplace(std::make_pair(name, mat));
+    }
+  }
+  return map;
+}
+
 std::vector<Triangle> obj_to_vertices(const std::string &s)
 {
+    parse_materials(s);
     std::vector<Vector> v;
     std::vector<Vector> vn;
     std::vector<Triangle> vt;
@@ -66,7 +104,7 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
     for (unsigned i = 0; i < v.size(); i += 3)
     {
         unsigned idx = i / 3;
-        Triangle t(v[idx], v[idx + 1], v[idx + 2], 
+        Triangle t(v[idx], v[idx + 1], v[idx + 2],
                    vn[idx], vn[idx + 1], vn[idx + 2]);
 
         vt.push_back(t);
