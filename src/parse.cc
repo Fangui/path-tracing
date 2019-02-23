@@ -46,8 +46,8 @@ std::map<std::string, Material> parse_materials(const std::string &s)
       in >> trash >> d;
       in >> trash >> illum;
       Material mat(ns, ka, kd, ks, ke, ni, d, illum);
-      std::cout << "newmtl " << name << std::endl;
-      mat.dump();
+      // std::cout << "newmtl " << name << std::endl;
+      // mat.dump();
       map.emplace(std::make_pair(name, mat));
     }
   }
