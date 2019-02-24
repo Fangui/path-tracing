@@ -67,8 +67,8 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
             unsigned cpt = 0;
             for (unsigned i = 2; i < line.size(); ++i)
             {
-                if (is_blank(line[i]))
-                    continue;
+                while (i < line.size() && is_blank(line[i]))
+                    ++i;
 
                 std::string s;
                 s.reserve(line.size() - i);
@@ -123,7 +123,7 @@ int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
     }
     else
     {
-        std::cerr << "Error while write \n";
+        std::cerr << "Error while write in " << out_path << '\n';
         return 1;
     }
     return 0;
