@@ -5,7 +5,7 @@
 struct Material
 {
     Material(float ns, Vector &ka, Vector &kd, Vector &ks,
-             Vector &ke, float ni, float d, int illum)
+             Vector &ke, float ni, float d, int illum, Vector &tf)
         : ns(ns)
         , ka(ka)
         , kd(kd)
@@ -14,6 +14,7 @@ struct Material
         , ni(ni)
         , d(d)
         , illum(illum)
+        , tf(tf)
     { }
 
     void dump();
@@ -26,4 +27,5 @@ struct Material
     float ni;
     float d;
     int illum;
+    Vector tf;
 };

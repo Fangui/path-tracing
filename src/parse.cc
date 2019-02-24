@@ -6,6 +6,7 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <map>
 
@@ -18,30 +19,63 @@ std::map<std::string, Material> parse_materials(const std::string &s)
 {
   std::map<std::string, Material> map;
   std::string name;
-  float ns, ni, d;
-  Vector ka, ks, kd, ke;
-  int illum;
-
-  std::ifstream in(s.substr(0, s.length() - 3) + "mtl");
+//  std::ifstream in(s.substr(0, s.length() - 3) + "mtl");
+  std::ifstream in("Tree.mtl");
   std::string line;
 
   while (std::getline(in, line))
   {
+    float ns = 0;
+    float ni = 0;
+    float d = 0;
+    int illum = 0;
+    Vector ka, ks, kd, ke, tf;
     if (line.substr(0, 6) == "newmtl")
     {
       std::string trash;
       name = line.substr(7, line.length());
-      in >> trash >> ns;
+      while (std::getline(in, line))
+      {
+        auto id = line.substr(0, 2);
+        std::istringstream strin(line);
+        if (id == "Ns")
+          strin >> trash >> ns;
+        else if (id == "Ka")
+          strin >> trash >> ka.x_ >> ka.y_ >> ka.z_;
+        else if (id == "Kd")
+          strin >> trash >> kd.x_ >> kd.y_ >> kd.z_;
+        else if (id == "Ks")
+          strin >> trash >> ks.x_ >> ks.y_ >> ks.z_;
+        else if (id == "Ke")
+          strin >> trash >> ke.x_ >> ke.y_ >> ke.z_;
+        else if (id == "Ni")
+          strin >> trash >> ni;
+        else if (id == "d ")
+          strin >> trash >> d;
+        else if (id == "il")
+          strin >> trash >> illum;
+        else if (id == "Tf")
+          strin >> trash >> tf.x_ >> tf.y_ >> tf.z_;
+        else if (id == "ma")
+          continue;
+        else
+          break;
+        id.clear();
+        id += in.peek();
+        if (id == "n")
+          break;
+      }
+/*      in >> trash >> ns;
       in >> trash >> ka.x_ >> ka.y_ >> ka.z_;
       in >> trash >> kd.x_ >> kd.y_ >> kd.z_;
       in >> trash >> ks.x_ >> ks.y_ >> ks.z_;
       in >> trash >> ke.x_ >> ke.y_ >> ke.z_;
       in >> trash >> ni;
       in >> trash >> d;
-      in >> trash >> illum;
-      Material mat(ns, ka, kd, ks, ke, ni, d, illum);
-      // std::cout << "newmtl " << name << std::endl;
-      // mat.dump();
+      in >> trash >> illum;*/
+      Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf);
+      std::cout << "newmtl " << name << std::endl;
+      mat.dump();
       map.emplace(std::make_pair(name, mat));
     }
   }
@@ -50,7 +84,6 @@ std::map<std::string, Material> parse_materials(const std::string &s)
 
 std::vector<Triangle> obj_to_vertices(const std::string &s)
 {
-    parse_materials(s);
     std::vector<Vector> v;
     std::vector<Vector> vn;
     std::vector<Triangle> vt;

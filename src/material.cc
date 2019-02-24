@@ -11,4 +11,5 @@ void Material::dump()
   std::cout << "Ni : " << ni << std::endl;
   std::cout << "d : " << d << std::endl;
   std::cout << "illum : " << illum << std::endl;
+  std::cout << "Tf : " << tf.x_ << " " <<  tf.y_ <<  " " << tf.z_ << std::endl;
 }
