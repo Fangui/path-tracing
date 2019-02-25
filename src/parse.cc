@@ -10,9 +10,9 @@
 #include <vector>
 #include <map>
 
-inline bool is_blank(char c)
+inline bool is_separator(char c)
 {
-    return c == ' ' || c == '\t' || c == '\n';
+    return c == ' ' || c == '\t' || c == '\n' || c == '/';
 }
 
 std::map<std::string, Material> parse_materials(const std::string &s)
@@ -20,7 +20,7 @@ std::map<std::string, Material> parse_materials(const std::string &s)
   std::map<std::string, Material> map;
   std::string name;
 //  std::ifstream in(s.substr(0, s.length() - 3) + "mtl");
-  std::ifstream in("Tree.mtl");
+  std::ifstream in(s);
   std::string line;
 
   while (std::getline(in, line))
@@ -74,25 +74,30 @@ std::map<std::string, Material> parse_materials(const std::string &s)
       in >> trash >> d;
       in >> trash >> illum;*/
       Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf);
-      std::cout << "newmtl " << name << std::endl;
-      mat.dump();
+    //  std::cout << "newmtl " << name << std::endl;
+    //  mat.dump();
       map.emplace(std::make_pair(name, mat));
     }
   }
   return map;
 }
 
-std::vector<Triangle> obj_to_vertices(const std::string &s)
+std::vector<Triangle> obj_to_vertices(const std::string &s,
+                                      const std::vector<std::string> &mat_names)
 {
     std::vector<Vector> v;
     std::vector<Vector> vn;
-    std::vector<Triangle> vt;
+    std::vector<Triangle> v_tri;
 
     std::ifstream in(s);
 
     std::string line;
+    std::map<std::string, unsigned> map;
 
     float val[3];
+    unsigned idx[9] = { 0 };
+    unsigned idx_cur;
+
     while (std::getline(in, line))
     {
         if (line[0] == 'v') // vertices
@@ -100,12 +105,12 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
             unsigned cpt = 0;
             for (unsigned i = 2; i < line.size(); ++i)
             {
-                while (i < line.size() && is_blank(line[i]))
+                while (i < line.size() && is_separator(line[i]))
                     ++i;
 
                 std::string s;
                 s.reserve(line.size() - i);
-                while (i < line.size() && !is_blank(line[i]))
+                while (i < line.size() && !is_separator(line[i]))
                     s += line[i++];
 
                 val[cpt++] = stof(s);
@@ -117,18 +122,47 @@ std::vector<Triangle> obj_to_vertices(const std::string &s)
             else if (line[1] == ' ')
                 v.push_back(vect); // v
         }
-    }
+        else if (line.substr(0, 6) == "usemtl")
+        {
+            const auto name = line.substr(7, line.length());
+            unsigned cpt = 0;
+            for (const auto &str : mat_names)
+            {
+                if (str == name)
+                    break;
+                ++cpt;
+            }
 
-    vt.reserve(v.size() / 3);
-    for (unsigned i = 0; i < v.size() / 3; ++i)
-    {
-        Triangle t(v[i], v[i + 1], v[i + 2],
-                   vn[i], vn[i + 1], vn[i + 2]);
+            if (cpt == mat_names.size())
+                std::cerr << "Material name not found \n";
+            idx_cur = cpt;
+        }
+        else if (line[0] == 'f')
+        {
+            unsigned cpt = 0;
+            for (unsigned i = 2; i < line.size(); ++i)
+            {
+                while (i < line.size() && is_separator(line[i]))
+                    ++i;
 
-        vt.push_back(t);
-    }
+                std::string s;
+                s.reserve(line.size() - i);
+                while (i < line.size() && !is_separator(line[i]))
+                    s += line[i++];
 
-    return vt;
+                idx[cpt++] = stof(s);
+            } // FIXME
+            Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
+                    vn[idx[2]], vn[idx[5]], vn[idx[8]]);
+
+            v_tri.push_back(t);
+        }
+}
+
+//v_tri.reserve(v.size() / 3);
+
+
+    return v_tri;
 }
 
 int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,

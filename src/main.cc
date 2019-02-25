@@ -46,11 +46,11 @@ int main(int argc, char *argv[])
     mat_name.reserve(map.size());
     for (const auto &it : map)
     {
-        std::cout << it.first << std::endl;
+//        std::cout << it.first << std::endl;
         mat_name.push_back(it.first);
     }
 
-    auto vertices = obj_to_vertices(path_obj);
+    auto vertices = obj_to_vertices(path_obj, mat_name);
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
 
