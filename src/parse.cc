@@ -124,7 +124,14 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
         }
         else if (line.substr(0, 6) == "usemtl")
         {
-            const auto name = line.substr(7, line.length());
+            auto name = line.substr(7, line.length());
+
+            auto e = name.find(':');
+            if (e != std::string::npos)
+            {
+                name = name.substr(e + 1, name.length());
+                std::cout << name << std::endl;
+            }
             unsigned cpt = 0;
             for (const auto &str : mat_names)
             {
@@ -133,8 +140,10 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
                 ++cpt;
             }
 
+            
             if (cpt == mat_names.size())
-                std::cerr << "Material name not found \n";
+                std::cerr << "Material name " << name << " not found \n";
+
             idx_cur = cpt;
         }
         else if (line[0] == 'f')

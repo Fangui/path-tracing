@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     mat_name.reserve(map.size());
     for (const auto &it : map)
     {
-//        std::cout << it.first << std::endl;
+        //std::cout << it.first << std::endl;
         mat_name.push_back(it.first);
     }
 
