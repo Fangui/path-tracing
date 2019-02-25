@@ -14,6 +14,7 @@ struct Ray
     Ray(Vector o, Vector dir) : o(o), dir(dir)
     {
         inv = Vector(1 / dir.x_, 1 / dir.y_, 1 / dir.z_);
+        id = 0;
         sign[0] = inv.x_ < 0;
         sign[1] = inv.y_ < 0;
         sign[2] = inv.z_ < 0;
@@ -21,6 +22,7 @@ struct Ray
     Vector o;
     Vector dir;
     Vector inv;
+    unsigned id;
     short sign[3];
 };
 
@@ -76,13 +78,14 @@ public:
 
     using childPtr = std::shared_ptr<KdNode>;
 
-    KdTree(iterator_v beg, iterator_v end);
-    void search(const Vector &origin,
-                    const Vector &ray, const Camera &cam,
-                    float &dist, Vector &last_inter)
+    KdTree(iterator_v beg, iterator_v end, std::vector<std::string> &mat_names);
+    void search(Ray &r, const Camera &cam,
+                    float &dist, Vector &last_inter,
+                    std::string &mat)
     {
-        Ray r(origin, ray);
         root_.get()->search(r, cam, dist, last_inter);
+        if (dist != -1)
+            mat = mat_names[r.id];
     }
 
     void print_infixe()
@@ -107,4 +110,5 @@ private:
     }
 
     childPtr root_;
+    std::vector<std::string> mat_names;
 };

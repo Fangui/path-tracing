@@ -42,20 +42,20 @@ int main(int argc, char *argv[])
 
     double t1 = omp_get_wtime();
     auto map = parse_materials(path_mat);
-    std::vector<std::string> mat_name;
-    mat_name.reserve(map.size());
+    std::vector<std::string> mat_names;
+    mat_names.reserve(map.size());
     for (const auto &it : map)
     {
         //std::cout << it.first << std::endl;
-        mat_name.push_back(it.first);
+        mat_names.push_back(it.first);
     }
 
-    auto vertices = obj_to_vertices(path_obj, mat_name);
+    auto vertices = obj_to_vertices(path_obj, mat_names);
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
 
     t1 = omp_get_wtime();
-    auto tree = KdTree(vertices.begin(), vertices.end());
+    auto tree = KdTree(vertices.begin(), vertices.end(), mat_names);
     t2 = omp_get_wtime();
     std::cout << "Time build kdTree: " << t2 - t1 << "s\n";
 
@@ -80,13 +80,20 @@ int main(int argc, char *argv[])
             o += b;
 
             Vector dir = cam_pos - o;
+            Ray r(o, dir);
             float dist = -1;
             Vector out(0, 0, 0);
-            tree.search(o, dir, cam, dist, out);
+            std::string mat;
+            tree.search(r, cam, dist, out, mat);
             if (dist == -1) // not found
                 vect[idx] = Vector(0, 0, 0);
             else
-                vect[idx] = Vector(1, 0, 0);
+            {
+                auto material = map.at(mat);
+                vect[idx] = Vector(material.ka.x_ + material.kd.x_ / 2, 
+                                   material.ka.y_ + material.kd.y_ / 2, 
+                                   material.ka.z_ + material.kd.z_ / 2);
+            }
         }
     }
     t2 = omp_get_wtime();

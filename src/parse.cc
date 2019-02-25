@@ -96,7 +96,7 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
 
     float val[3];
     unsigned idx[9] = { 0 };
-    unsigned idx_cur;
+    unsigned cur_idx = 0;
 
     while (std::getline(in, line))
     {
@@ -140,11 +140,11 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
                 ++cpt;
             }
 
-            
+
             if (cpt == mat_names.size())
                 std::cerr << "Material name " << name << " not found \n";
 
-            idx_cur = cpt;
+            cur_idx = cpt;
         }
         else if (line[0] == 'f')
         {
@@ -159,10 +159,10 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
                 while (i < line.size() && !is_separator(line[i]))
                     s += line[i++];
 
-                idx[cpt++] = stof(s);
+                idx[cpt++] = stof(s) - 1;
             } // FIXME
             Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                    vn[idx[2]], vn[idx[5]], vn[idx[8]]);
+                    vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
 
             v_tri.push_back(t);
         }

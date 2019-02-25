@@ -7,7 +7,8 @@
 struct Triangle
 {
     Triangle(Vector &v1, Vector &v2, Vector &v3,
-             Vector &n1, Vector &n2, Vector &n3)
+             Vector &n1, Vector &n2, Vector &n3,
+             unsigned id)
     { //FIXME
         vertices[0] = v1;
         vertices[1] = v2;
@@ -16,6 +17,7 @@ struct Triangle
         normal[0] = n1;
         normal[1] = n2;
         normal[2] = n3;
+        this->id = id;
 
         float x = 0.f;
         float y = 0.f;
@@ -42,4 +44,5 @@ struct Triangle
     Vector vertices[3];
     Vector normal[3];
     Vector mean;
+    unsigned id;
 };
