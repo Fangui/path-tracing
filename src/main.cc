@@ -28,13 +28,18 @@ int main(int argc, char *argv[])
 {
     std::string path_obj = "cube.svati";
     std::string path_mat = "cube.svati";
+    std::string path_scene = "cube.svati";
 
     if (argc > 1)
     {
         path_obj = argv[1];
         if (argc > 2)
             path_mat = argv[2];
+        if (argc > 3)
+            path_scene = argv[3];
     }
+
+    parse_scene(path_scene);
 
     int width = 512;
     int height = 512;

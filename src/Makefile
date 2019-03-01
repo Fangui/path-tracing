@@ -10,7 +10,7 @@ all: $(BIN)
 main: ${OBJS}
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)
 
-check: CXXFLAGS = -g3 -fopenmp
+check: CXXFLAGS = -g3 -O0 -fno-inline -fopenmp
 check: $(BIN)
 
 .PHONY: clean check
