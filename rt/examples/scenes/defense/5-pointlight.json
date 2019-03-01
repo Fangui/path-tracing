@@ -1,0 +1,37 @@
+{
+    "height": 256,
+    "width": 256,
+    "camera": {
+        "pos":      [0, 0, -5],
+        "forward":  [0.0, 0.0, 1.0],
+        "up":       [0.0, 1.0, 0.0],
+        "fov": 45.0
+    },
+    "meshs": [
+        "examples/models/unit-plane.obj"
+    ],
+    "materials": [
+        "examples/materials/default.json"
+    ],
+    "lights": [
+        {
+            "type": "ambient",
+            "color": [0.1, 0.1, 0.1]
+        },
+        {
+            "type": "point",
+            "color": [1.0, 0.0, 0.0],
+            "vector": [0, 0, 0]
+        }
+    ],
+
+    "objects": [
+        {
+            "mesh": 0,
+            "mtl": 0,
+            "position" : [ 0, -1, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 5, 1, 5 ]
+        }
+    ]
+}

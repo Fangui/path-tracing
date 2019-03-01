@@ -1,0 +1,127 @@
+{
+    "height": 540,
+    "width": 960,
+    "camera": {
+        "pos":      [0.0, 1.5, 0.0],
+        "forward":  [0.0, 0.0, 1.0],
+        "up":       [0.0, 1.0, 0.0],
+        "fov": 70.0
+    },
+    "meshs": [
+        "examples/models/car-on-road/car-on-road-ground.obj",
+        "examples/models/car-on-road/car-on-road-road.obj",
+        "examples/models/car-on-road/car-on-road-water.obj",
+        "examples/models/car-on-road/car/car-on-road-black.obj",
+        "examples/models/car-on-road/car/car-on-road-body.obj",
+        "examples/models/car-on-road/car/car-on-road-bottom.obj",
+        "examples/models/car-on-road/car/car-on-road-bumpers.obj",
+        "examples/models/car-on-road/car/car-on-road-lights.obj",
+        "examples/models/car-on-road/car/car-on-road-tires.obj",
+        "examples/models/car-on-road/car/car-on-road-wheels.obj",
+        "examples/models/car-on-road/car/car-on-road-window.obj"
+    ],
+    "materials": [
+        "examples/materials/car-on-road/car-on-road-ground.json",
+        "examples/materials/car-on-road/car-on-road-road.json",
+        "examples/materials/car-on-road/car-on-road-water.json",
+        "examples/materials/car-on-road/car/car-on-road-black.json",
+        "examples/materials/car-on-road/car/car-on-road-body.json",
+        "examples/materials/car-on-road/car/car-on-road-bottom.json",
+        "examples/materials/car-on-road/car/car-on-road-bumpers.json",
+        "examples/materials/car-on-road/car/car-on-road-lights.json",
+        "examples/materials/car-on-road/car/car-on-road-tires.json",
+        "examples/materials/car-on-road/car/car-on-road-wheels.json",
+        "examples/materials/car-on-road/car/car-on-road-window.json"
+    ],
+    "lights": [
+        {
+            "type": "ambient",
+            "color": [0.35, 0.35, 0.35]
+        },
+        {
+            "type": "directional",
+            "color": [0.9, 0.9, 0.9],
+            "vector": [0.5, -1.0, 0.0]
+        }
+    ],
+
+    "objects": [
+        {
+            "mesh": 0,
+            "mtl": 0,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 1,
+            "mtl": 1,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 2,
+            "mtl": 2,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 3,
+            "mtl": 3,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 4,
+            "mtl": 4,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 5,
+            "mtl": 5,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 6,
+            "mtl": 6,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 7,
+            "mtl": 7,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 8,
+            "mtl": 8,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 9,
+            "mtl": 9,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 10,
+            "mtl": 10,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        }
+    ]
+}

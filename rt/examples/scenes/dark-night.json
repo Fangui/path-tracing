@@ -1,0 +1,73 @@
+{
+    "height": 540,
+    "width": 960,
+    "camera": {
+        "pos":      [0.0, 6.0, -1.0],
+        "forward":  [0.0, 0.0, 1.0],
+        "up":       [0.0, 1.0, 0.0],
+        "fov": 65.0
+    },
+    "meshs": [
+        "examples/models/dark-night/dark-night-ground.obj",
+        "examples/models/dark-night/dark-night-tree.obj",
+        "examples/models/dark-night/dark-night-default.obj",
+        "examples/models/dark-night/dark-night-star.obj",
+        "examples/models/dark-night/dark-night-water.obj"
+    ],
+    "materials": [
+        "examples/materials/dark-night/dark-night-ground.json",
+        "examples/materials/dark-night/dark-night-tree.json",
+        "examples/materials/dark-night/dark-night-default.json",
+        "examples/materials/dark-night/dark-night-star.json",
+        "examples/materials/dark-night/dark-night-water.json"
+    ],
+    "lights": [
+        {
+            "type": "ambient",
+            "color": [0.4, 0.4, 0.4]
+        },
+        {
+            "type": "directional",
+            "color": [0.66, 0.75, 0.75],
+            "vector": [1.0, -1.0, 0.2]
+        }
+    ],
+
+    "objects": [
+        {
+            "mesh": 0,
+            "mtl": 0,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 1,
+            "mtl": 1,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 2,
+            "mtl": 2,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 3,
+            "mtl": 3,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        },
+        {
+            "mesh": 4,
+            "mtl": 4,
+            "position" : [ 0, 0, 0 ],
+            "rotation" : [ 0, 0, 0 ],
+            "scale"    : [ 1, 1, 1 ]
+        }
+    ]
+}
