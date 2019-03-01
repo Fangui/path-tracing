@@ -8,7 +8,7 @@ BIN = main
 all: $(BIN)
 
 main: ${OBJS}
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(BIN)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)
 
 check: CXXFLAGS = -g3 -fopenmp
 check: $(BIN)

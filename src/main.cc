@@ -9,6 +9,21 @@
 #include "parse.hh"
 #include "vector.hh"
 
+/*
+Vector direct_light(const Ray &r, lights, const Vector &hit)
+{
+    Vector light(0, 0, 0);
+    for (const auto &l : lights)
+    {
+        if (l.intersect(r) && hit.normal.dotproduct(l.dir * -1))
+        {
+            light = l.intensity // FIXME
+        }
+    }
+
+}
+*/
+
 int main(int argc, char *argv[])
 {
     std::string path_obj = "cube.svati";
@@ -23,7 +38,7 @@ int main(int argc, char *argv[])
 
     int width = 512;
     int height = 512;
-    float fov = 70.f;
+    float fov = 120.f;
 
     Vector cam_pos(0, 1.5, -5);
     Vector u(1, 0, 0);
@@ -68,6 +83,10 @@ int main(int argc, char *argv[])
     Vector C = cam_pos + (w * L); // center
 
     t1 = omp_get_wtime();
+
+    const float ambiant_l[3] = { 0.3f, 0.3f, 0.3f};
+    const float dir_l[3] = { 0.2f, 0.2f, 0.2f}; //FIXME
+
 #pragma omp parallel for schedule (dynamic)
     for (int i = -width / 2; i < width / 2; ++i)
     {
@@ -86,13 +105,40 @@ int main(int argc, char *argv[])
             std::string mat;
             tree.search(r, cam, dist, out, mat);
             if (dist == -1) // not found
-                vect[idx] = Vector(0, 0, 0);
+                vect[idx] = Vector(0.f, 0.f, 0.f);
             else
             {
                 auto material = map.at(mat);
-                vect[idx] = Vector(material.ka.x_ + material.kd.x_ / 2, 
-                                   material.ka.y_ + material.kd.y_ / 2, 
-                                   material.ka.z_ + material.kd.z_ / 2);
+                /*
+                auto direct_l = direct_light(r, d_lights);
+
+                */
+
+
+                /*
+                Vector indirect_l(0.f, 0.f, 0.f);
+
+                const unsigned nb_ray = 2;
+                for (unsigned i = 0; i < nb_ray; ++i)
+                {
+                    float r1 = static_cast<float>(rand()) / static_cast <float> (RAND_MAX); // fixme random uniform
+                    float r2 = static_cast<float>(rand()) / static_cast <float> (RAND_MAX);
+
+                    Vector new_dir(Vector(r1, r2));
+                    Ray ray(o, new_dir);
+
+                    tree.search(ray, cam, dist, out, mat); // if intersect, compute indirect_l
+                    indirect_l *= 2 * M_PI;
+
+                }
+                indirect_l *= static_cast<float>(1 / nb_ray);*/
+                vect[idx] = Vector(material.ka.x_ * ambiant_l[0] + material.kd.x_ * dir_l[0] + 0.3,
+                                   material.ka.y_ * ambiant_l[1] + material.kd.y_ * dir_l[1],
+                                   material.ka.z_ * ambiant_l[2] + material.kd.z_ * dir_l[2]); // Fixme direct light
+                /*
+                vect[idx] *= (1 / M_PI);
+                vect[idx] += indirect_l * 2; // * albedo
+                */
             }
         }
     }

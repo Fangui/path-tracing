@@ -8,6 +8,16 @@ class Vector
 public:
     Vector() : x_(0), y_(0), z_(0) {};
     Vector(float x, float y, float z) : x_(x), y_(y), z_(z) {};
+    Vector(float r1, float r2) // create a hemisphere
+    {
+        float sinTheta = sqrtf(1 - r1 * r1);
+        float phi = 2 * M_PI * r2;
+        float x = sinTheta * cosf(phi);
+        float z = sinTheta * sinf(phi);
+        x_ = x;
+        y_ = phi;
+        z_ = z;
+    };
     Vector operator+(const Vector &rhs) const;
     Vector operator+=(const Vector &rhs);
     Vector operator-(const Vector &rhs) const;

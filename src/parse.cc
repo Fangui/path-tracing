@@ -8,16 +8,15 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <map>
 
 inline bool is_separator(char c)
 {
     return c == ' ' || c == '\t' || c == '\n' || c == '/';
 }
 
-std::map<std::string, Material> parse_materials(const std::string &s)
+std::unordered_map<std::string, Material> parse_materials(const std::string &s)
 {
-  std::map<std::string, Material> map;
+  std::unordered_map<std::string, Material> map;
   std::string name;
 //  std::ifstream in(s.substr(0, s.length() - 3) + "mtl");
   std::ifstream in(s);
@@ -92,7 +91,7 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
     std::ifstream in(s);
 
     std::string line;
-    std::map<std::string, unsigned> map;
+    std::unordered_map<std::string, unsigned> map;
 
     float val[3];
     unsigned idx[9] = { 0 };
