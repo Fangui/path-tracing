@@ -32,6 +32,8 @@ struct Triangle
         mean = Vector(x / 3.f, y / 3.f, z / 3.f);
     }
 
+    Triangle() = default;
+
     Vector get_mean(void) // return barycentre
     {
         return mean;

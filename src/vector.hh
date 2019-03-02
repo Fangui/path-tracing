@@ -42,6 +42,11 @@ public:
         z_ = z;
     }
 
+    Vector reflect(const Vector &i, const Vector &n)
+    {
+        return i - n * i.dot_product(n) * 2; // check formule
+ //       return I - 2 * dotProduct(I, N) * N;
+    }
 //private:
     float x_;
     float y_;

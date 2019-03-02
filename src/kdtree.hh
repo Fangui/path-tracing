@@ -11,18 +11,19 @@ using iterator_v = std::vector<Triangle>::iterator;
 
 struct Ray
 {
-    Ray(Vector o, Vector dir) : o(o), dir(dir)
+    Ray(Vector &o, Vector &dir) : o(o), dir(dir)
     {
         inv = Vector(1 / dir.x_, 1 / dir.y_, 1 / dir.z_);
-        id = 0;
         sign[0] = inv.x_ < 0;
         sign[1] = inv.y_ < 0;
         sign[2] = inv.z_ < 0;
+
+
     };
     Vector o;
     Vector dir;
     Vector inv;
-    unsigned id;
+    Triangle tri;
     short sign[3];
 };
 
@@ -78,14 +79,11 @@ public:
 
     using childPtr = std::shared_ptr<KdNode>;
 
-    KdTree(iterator_v beg, iterator_v end, std::vector<std::string> &mat_names);
+    KdTree(iterator_v beg, iterator_v end);
     void search(Ray &r, const Camera &cam,
-                    float &dist, Vector &last_inter,
-                    std::string &mat)
+                    float &dist, Vector &last_inter)
     {
         root_.get()->search(r, cam, dist, last_inter);
-        if (dist != -1)
-            mat = mat_names[r.id];
     }
 
     void print_infixe()
@@ -110,5 +108,4 @@ private:
     }
 
     childPtr root_;
-    std::vector<std::string> mat_names;
 };

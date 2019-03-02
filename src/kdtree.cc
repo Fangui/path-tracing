@@ -66,11 +66,9 @@ static unsigned get_longest_axis(float box[6])
     return 2;
 }
 
-KdTree::KdTree(iterator_v beg, iterator_v end,
-               std::vector<std::string> &mat_names)
+KdTree::KdTree(iterator_v beg, iterator_v end)
 {
     root_ = make_child(beg, end);
-    this->mat_names = mat_names;
 }
 
 KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
@@ -147,7 +145,7 @@ void KdTree::KdNode::search(Ray &ray, const Camera &cam,
                     dist = distance;
 
                 last_inter = inter;
-                ray.id = it->id;
+                ray.tri = *it;
             }
         }
 
