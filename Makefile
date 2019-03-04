@@ -1,4 +1,5 @@
 CXX ?= g++
+VPATH=src/
 CXXFLAGS += -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp
 
 SRC = main.cc vector.cc kdtree.cc triangle.cc material.cc parse.cc

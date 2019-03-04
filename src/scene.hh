@@ -7,6 +7,8 @@ struct Scene
     int height;
     int width;
     Vector cam_pos;
+    Vector cam_u;
+    Vector cam_v;
     float fov;
     std::vector<std::string> objs;
     std::vector<std::string> mtls;

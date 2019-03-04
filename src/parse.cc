@@ -38,8 +38,16 @@ Scene parse_scene(const std::string& filename)
         scene.cam_pos.y_ = *(cpos++);
         scene.cam_pos.z_ = *(cpos++);
 
+        cpos = j["camera"]["u"].begin();
+        scene.cam_u.x_ = *(cpos++);
+        scene.cam_u.y_ = *(cpos++);
+        scene.cam_u.z_ = *(cpos++);
         scene.fov = j["camera"]["fov"];
 
+        cpos = j["camera"]["v"].begin();
+        scene.cam_v.x_ = *(cpos++);
+        scene.cam_v.y_ = *(cpos++);
+        scene.cam_v.z_ = *(cpos++);
         auto objs = j["meshs"];
         for (auto e : objs)
             scene.objs.emplace_back(e);
@@ -116,10 +124,10 @@ Scene parse_scene(const std::string& filename)
         std::cout << "Objects :" << std::endl;
         for (auto e : scene.objects)
         {
-            std::cout << "     " << e.mesh << " " << e.mtl << std::endl;
-            std::cout << "     " << " " << e.pos.x_ << " " << e.pos.y_ << " " << e.pos.z_ << std::endl;
-            std::cout << "     " << " " << e.rot.x_ << " " << e.rot.y_ << " " << e.rot.z_ << std::endl;
-            std::cout << "     " << " " << e.scale.x_ << " " << e.scale.y_ << " " << e.scale.z_ << std::endl;
+            std::cout << "     mesh/mtl : " << e.mesh << " " << e.mtl << std::endl;
+            std::cout << "     pos : " << e.pos.x_ << " " << e.pos.y_ << " " << e.pos.z_ << std::endl;
+            std::cout << "     rot : " << e.rot.x_ << " " << e.rot.y_ << " " << e.rot.z_ << std::endl;
+            std::cout << "     scale : " << e.scale.x_ << " " << e.scale.y_ << " " << e.scale.z_ << std::endl;
             std::cout  << std::endl;
         }
     } catch (std::exception& e){
@@ -127,9 +135,8 @@ Scene parse_scene(const std::string& filename)
     }
     return scene;
 }
-std::unordered_map<std::string, Material> parse_materials(const std::string &s)
+void parse_materials(const std::string &s, std::unordered_map<std::string, Material>& map)
 {
-    std::unordered_map<std::string, Material> map;
     std::string name;
     std::ifstream in(s);
     std::string line;
@@ -182,15 +189,13 @@ std::unordered_map<std::string, Material> parse_materials(const std::string &s)
             map.emplace(std::make_pair(name, mat));
         }
     }
-    return map;
 }
 
-std::vector<Triangle> obj_to_vertices(const std::string &s,
-        const std::vector<std::string> &mat_names)
+void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_names,
+                     std::vector<Triangle>& v_tri)
 {
     std::vector<Vector> v;
     std::vector<Vector> vn;
-    std::vector<Triangle> v_tri;
 
     std::ifstream in(s);
 
@@ -265,16 +270,11 @@ std::vector<Triangle> obj_to_vertices(const std::string &s,
                 idx[cpt++] = stof(s) - 1;
             } // FIXME
             Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                    vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
+                    v[idx[2]], v[idx[5]], v[idx[8]], cur_idx); // FIXME replace v by vn
 
             v_tri.push_back(t);
         }
     }
-
-    //v_tri.reserve(v.size() / 3);
-
-
-    return v_tri;
 }
 
 int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,

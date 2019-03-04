@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <omp.h>
+#include <unordered_map>
 
 #include "camera.hh"
 #include "kdtree.hh"
@@ -51,42 +52,34 @@ Vector direct_light(const Ray &r, lights, const Vector &hit, const Material &mat
 
 int main(int argc, char *argv[])
 {
-    std::string path_obj = "cube.svati";
-    std::string path_mat = "cube.svati";
-    std::string path_scene = "cube.svati";
+    std::string path_scene;
 
     if (argc > 1)
+        path_scene = argv[1];
+    else
     {
-        path_obj = argv[1];
-        if (argc > 2)
-            path_mat = argv[2];
-        if (argc > 3)
-            path_scene = argv[3];
+        std::cerr << "Usage: ./main <scene>\n";
+        return 1;
     }
 
-    parse_scene(path_scene);
+    double t1 = omp_get_wtime();
 
-    int width = 512;
-    int height = 512;
-    float fov = 120.f;
+    Scene scene = parse_scene(path_scene);
 
-    Vector cam_pos(0, 1.5, -5);
-    Vector u(1, 0, 0);
-    Vector v(0, -1, 0);
+    Camera cam(scene.width, scene.height, scene.fov, scene.cam_pos, scene.cam_u, scene.cam_v);
 
-    Camera cam(width, height, fov, cam_pos, u, v);
-
-    Vector u_n = u.norm();
-    Vector w = v.norm();
+    Vector u_n = scene.cam_u.norm();
+    Vector w = scene.cam_v.norm();
     w = w.cross_product_inplace(u_n);
 
-    float val = tanf(cam.fov_ * M_PI / 360);
+    float val = tanf(scene.fov * M_PI / 360);
     val = val == 0.0 ? 0.0001 : val;
-    float L = width / 2;
+    float L = scene.width / 2;
     L /= val; // distance between camera and center of screen
 
-    double t1 = omp_get_wtime();
-    auto map = parse_materials(path_mat);
+    std::unordered_map<std::string, Material> map;
+    for (const auto& name : scene.mtls)
+        parse_materials(name, map);
     std::vector<std::string> mat_names;
     mat_names.reserve(map.size());
     for (const auto &it : map)
@@ -95,7 +88,9 @@ int main(int argc, char *argv[])
         mat_names.push_back(it.first);
     }
 
-    auto vertices = obj_to_vertices(path_obj, mat_names);
+    std::vector<Triangle> vertices;
+    for (const auto& name : scene.objs)
+      obj_to_vertices(name, mat_names, vertices);
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
 
@@ -108,27 +103,27 @@ int main(int argc, char *argv[])
     std::cout << tree.size() << std::endl;
 //    tree.print_infixe();
 
-    std::vector<Vector> vect(width * height);
+    std::vector<Vector> vect(scene.width * scene.height);
 
-    Vector C = cam_pos + (w * L); // center
+    Vector C = scene.cam_pos + (w * L); // center
 
     t1 = omp_get_wtime();
 
     const float ambiant_l[3] = { 0.3f, 0.3f, 0.3f};
     const float dir_l[3] = { 0.2f, 0.2f, 0.2f}; //FIXME
 
-#pragma omp parallel for schedule (dynamic)
-    for (int i = -width / 2; i < width / 2; ++i)
+//#pragma omp parallel for schedule (dynamic)
+    for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
-        for (int j = -height / 2; j < height / 2; ++j)
+        for (int j = -scene.height / 2; j < scene.height / 2; ++j)
         {
-            unsigned idx = (i + width / 2) * height + (j + height / 2);
-            Vector o = u * j;
-            Vector b = v * i;
+            unsigned idx = (i + scene.width / 2) * scene.height + (j + scene.height / 2);
+            Vector o = scene.cam_u * j;
+            Vector b = scene.cam_v * i;
             o += C;
             o += b;
 
-            Vector dir = cam_pos - o;
+            Vector dir = scene.cam_pos - o;
             Ray r(o, dir);
             float dist = -1;
             Vector out(0, 0, 0);
@@ -168,6 +163,6 @@ int main(int argc, char *argv[])
     }
     t2 = omp_get_wtime();
     std::cout << "Time raytracing: " << t2 - t1 << "s\n";
-    return write_ppm("out.ppm", vect, width, height);
+    return write_ppm("out.ppm", vect, scene.width, scene.height);
 
 }
