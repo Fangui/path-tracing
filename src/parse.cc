@@ -141,6 +141,12 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
     std::ifstream in(s);
     std::string line;
 
+    if (!in.is_open())
+    {
+        std::cerr << "Materiel not found: " << s << '\n';
+        exit(2);
+    }
+
     while (std::getline(in, line))
     {
         float ns = 0;
@@ -270,7 +276,7 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
                 idx[cpt++] = stof(s) - 1;
             } // FIXME
             Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                    v[idx[2]], v[idx[5]], v[idx[8]], cur_idx); // FIXME replace v by vn
+                    v[0], v[0], v[0], cur_idx); // FIXME replace v by vn
 
             v_tri.push_back(t);
         }
