@@ -18,3 +18,6 @@ check: $(BIN)
 clean:
 	${RM} ${OBJS}
 	${RM} $(BIN)
+
+test:
+	./$(BIN) ./examples/scenes/cube.json

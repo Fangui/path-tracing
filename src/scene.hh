@@ -12,6 +12,7 @@ struct Scene
     float fov;
     std::vector<std::string> objs;
     std::vector<std::string> mtls;
+    Vector a_light;
     std::vector<Light> lights;
     std::vector<Object> objects;
 };

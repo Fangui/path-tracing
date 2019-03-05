@@ -2,13 +2,12 @@
 
 struct Light
 {
-    Light(const std::string& s, Vector p, int r)
-    : type(s)
-    , pos(p)
-    , radius(r)
+    Light(Vector &color,
+          Vector &dir)
+    : color(color)
+    , dir(dir)
     {}
 
-    std::string type;
-    Vector pos;
-    int radius;
+    Vector color;
+    Vector dir;
 };

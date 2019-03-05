@@ -109,10 +109,7 @@ int main(int argc, char *argv[])
 
     t1 = omp_get_wtime();
 
-    const float ambiant_l[3] = { 0.3f, 0.3f, 0.3f};
-    const float dir_l[3] = { 0.2f, 0.2f, 0.2f}; //FIXME
-
-//#pragma omp parallel for schedule (dynamic)
+#pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
         for (int j = -scene.height / 2; j < scene.height / 2; ++j)
@@ -151,9 +148,9 @@ int main(int argc, char *argv[])
 
                 }
                 indirect_l *= static_cast<float>(1 / nb_ray);*/
-                vect[idx] = Vector(material.ka.x_ * ambiant_l[0] + material.kd.x_ * dir_l[0] + 0.3,
-                                   material.ka.y_ * ambiant_l[1] + material.kd.y_ * dir_l[1],
-                                   material.ka.z_ * ambiant_l[2] + material.kd.z_ * dir_l[2]); // Fixme direct light
+                vect[idx] = Vector(material.ka.x_ * scene.a_light.x_ + material.kd.x_,
+                                   material.ka.y_ * scene.a_light.y_ + material.kd.y_,
+                                   material.ka.z_ * scene.a_light.z_ + material.kd.z_); // Fixme direct light
                 /*
                 vect[idx] *= (1 / M_PI);
                 vect[idx] += indirect_l * 2; // * albedo

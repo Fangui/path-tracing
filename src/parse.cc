@@ -69,7 +69,15 @@ Scene parse_scene(const std::string& filename)
                 p.y_ = *(pos++);
                 p.z_ = *(pos++);
             }
-            scene.lights.emplace_back(Light(s, p, r));
+            if (s == "ambient")
+                scene.a_light = p;
+            else
+            {
+                std::cerr << "Light not implemented yet" << std::endl;
+                exit(2);
+            }
+        //    else
+          //      scene.lights.emplace_back(Light(p, r));
         }
 
         auto objects = j["objects"];
@@ -115,11 +123,15 @@ Scene parse_scene(const std::string& filename)
         for (auto e : scene.mtls)
             std::cout << "     " << e << std::endl;
         std::cout  << std::endl;
+
         std::cout << "Lights :" << std::endl;
+        std::cout << scene.a_light << '\n';
+        /*
         for (auto e : scene.lights)
             std::cout << "     " << e.type << " " << e.pos.x_ <<
                 " " << e.pos.y_ <<
                 " " << e.pos.z_ << std::endl;
+        */
         std::cout  << std::endl;
         std::cout << "Objects :" << std::endl;
         for (auto e : scene.objects)
