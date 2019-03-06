@@ -138,8 +138,18 @@ int main(int argc, char *argv[])
                 for (auto light : scene.lights)
                 {
                     Vector L = light.dir * -1;
-                    L *= r.tri.normal[0];
-                    color += light.color * material.kd * L;
+                    L.norm_inplace();
+                    Vector normal_n = r.tri.normal[0].norm();
+                    float diff = L.dot_product(normal_n);
+
+    
+                    Vector R = (normal_n * (normal_n.dot_product(light.dir * -1) * 2) + light.dir).norm();
+
+                    float spec  = pow(R.dot_product(dir), material.ns);
+
+                    color += light.color * material.kd * diff;
+                    if (spec > 0 )
+                        color += light.color * spec;
                 }
                vect[idx] += color;
                 /*
