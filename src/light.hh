@@ -1,6 +1,9 @@
 #pragma once
 
-struct Light
+#include <iostream>
+#include "vector.hh"
+
+struct Light // directional
 {
     Light(Vector &color,
           Vector &dir)
@@ -11,3 +14,5 @@ struct Light
     Vector color;
     Vector dir;
 };
+
+std::ostream& operator <<(std::ostream& os, const Light &l);

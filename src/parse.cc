@@ -1,6 +1,7 @@
 #include "kdtree.hh"
 #include "parse.hh"
 #include "triangle.hh"
+#include "light.hh"
 #include "material.hh"
 #include "json.hpp"
 
@@ -61,16 +62,28 @@ Scene parse_scene(const std::string& filename)
         {
             std::string s = e["type"].get<std::string>();
             int r = 1;
-            Vector p(1, 1, 1);
+            Vector color(1, 1, 1);
+            Vector dir(1, 1, 1);
+
+            if (e.find("color") != e.end())
+            {
+                auto pos = e["color"].begin();
+                color.set(pos[0], pos[1], pos[2]);
+            }
+
             if (e.find("vector") != e.end())
             {
                 auto pos = e["vector"].begin();
-                p.x_ = *(pos++);
-                p.y_ = *(pos++);
-                p.z_ = *(pos++);
+                dir.set(pos[0], pos[1], pos[2]);
             }
+
+
             if (s == "ambient")
-                scene.a_light = p;
+                scene.a_light = color;
+            else if (s == "directional")
+            {
+                scene.lights.push_back(Light(color, dir));
+            }
             else
             {
                 std::cerr << "Light not implemented yet" << std::endl;
@@ -111,8 +124,7 @@ Scene parse_scene(const std::string& filename)
         std::cout << "Height : " << scene.height << std::endl;
         std::cout << "Width : " << scene.width << std::endl;
         std::cout << "Camera :" << std::endl;
-        std::cout << "     pos : [ " << scene.cam_pos.x_ << ", " <<  scene.cam_pos.y_ << ", " <<
-            scene.cam_pos.z_ << " ]" << std::endl;
+        std::cout << "     pos : | " << scene.cam_pos << '\n';
         std::cout << "     fov : " << scene.fov << std::endl;
         std::cout  << std::endl;
         std::cout << "Meshs :" << std::endl;
@@ -125,13 +137,10 @@ Scene parse_scene(const std::string& filename)
         std::cout  << std::endl;
 
         std::cout << "Lights :" << std::endl;
-        std::cout << scene.a_light << '\n';
-        /*
+        std::cout << scene.a_light << "\n\n";
+        std::cout << "Directional_light" << '\n';
         for (auto e : scene.lights)
-            std::cout << "     " << e.type << " " << e.pos.x_ <<
-                " " << e.pos.y_ <<
-                " " << e.pos.z_ << std::endl;
-        */
+            std::cout<< e << '\n';  
         std::cout  << std::endl;
         std::cout << "Objects :" << std::endl;
         for (auto e : scene.objects)

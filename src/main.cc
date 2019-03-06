@@ -130,6 +130,9 @@ int main(int argc, char *argv[])
             else
             {
                 auto material = map.at(mat_names[r.tri.id]);
+                vect[idx] = Vector(material.ka.x_ * scene.a_light.x_,
+                                   material.ka.y_ * scene.a_light.y_,
+                                   material.ka.z_ * scene.a_light.z_); // ambient light
                 /*
                 auto direct_l = direct_light(r, d_lights, material);
                 Vector indirect_l(0.f, 0.f, 0.f);
@@ -148,9 +151,7 @@ int main(int argc, char *argv[])
 
                 }
                 indirect_l *= static_cast<float>(1 / nb_ray);*/
-                vect[idx] = Vector(material.ka.x_ * scene.a_light.x_ + material.kd.x_,
-                                   material.ka.y_ * scene.a_light.y_ + material.kd.y_,
-                                   material.ka.z_ * scene.a_light.z_ + material.kd.z_); // Fixme direct light
+                
                 /*
                 vect[idx] *= (1 / M_PI);
                 vect[idx] += indirect_l * 2; // * albedo
