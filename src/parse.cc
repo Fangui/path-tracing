@@ -124,7 +124,7 @@ Scene parse_scene(const std::string& filename)
         std::cout << "Height : " << scene.height << std::endl;
         std::cout << "Width : " << scene.width << std::endl;
         std::cout << "Camera :" << std::endl;
-        std::cout << "     pos : | " << scene.cam_pos << '\n';
+        std::cout << "     pos : " << scene.cam_pos << '\n';
         std::cout << "     fov : " << scene.fov << std::endl;
         std::cout  << std::endl;
         std::cout << "Meshs :" << std::endl;
@@ -140,7 +140,7 @@ Scene parse_scene(const std::string& filename)
         std::cout << scene.a_light << "\n\n";
         std::cout << "Directional_light" << '\n';
         for (auto e : scene.lights)
-            std::cout<< e << '\n';  
+            std::cout<< e << '\n';
         std::cout  << std::endl;
         std::cout << "Objects :" << std::endl;
         for (auto e : scene.objects)
@@ -296,10 +296,18 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
 
                 idx[cpt++] = stof(s) - 1;
             } // FIXME
-            Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                    v[0], v[0], v[0], cur_idx); // FIXME replace v by vn
-
-            v_tri.push_back(t);
+            if (vn.size() == 0) // if not vn in file
+            {
+                Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
+                           v[0], v[0], v[0], cur_idx);
+                v_tri.push_back(t);
+            }
+            else
+            {
+                Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
+                           vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
+                v_tri.push_back(t);
+            }
         }
     }
 }

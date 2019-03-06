@@ -2,7 +2,8 @@
 
 #include "vector.hh"
 
-#define EPSILON 1.19209290E-07F
+//#define EPSILON 1.19209290E-07F
+#define EPSILON 0.00001
 
 struct Triangle
 {

@@ -20,4 +20,4 @@ clean:
 	${RM} $(BIN)
 
 test:
-	./$(BIN) ./examples/scenes/mountain.json && feh out.ppm
+	./$(BIN) ./examples/scenes/iron.json && feh out.ppm

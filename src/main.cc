@@ -133,6 +133,15 @@ int main(int argc, char *argv[])
                 vect[idx] = Vector(material.ka.x_ * scene.a_light.x_,
                                    material.ka.y_ * scene.a_light.y_,
                                    material.ka.z_ * scene.a_light.z_); // ambient light
+
+                Vector color;
+                for (auto light : scene.lights)
+                {
+                    Vector L = light.dir * -1;
+                    L *= r.tri.normal[0];
+                    color += light.color * material.kd * L;
+                }
+               vect[idx] += color;
                 /*
                 auto direct_l = direct_light(r, d_lights, material);
                 Vector indirect_l(0.f, 0.f, 0.f);
@@ -151,7 +160,7 @@ int main(int argc, char *argv[])
 
                 }
                 indirect_l *= static_cast<float>(1 / nb_ray);*/
-                
+
                 /*
                 vect[idx] *= (1 / M_PI);
                 vect[idx] += indirect_l * 2; // * albedo
