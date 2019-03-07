@@ -142,10 +142,12 @@ void KdTree::KdNode::search(Ray &ray, const Camera &cam,
             {
                 float distance = (inter - cam.pos_).get_dist();
                 if (dist == -1 || dist > distance)
+                {
                     dist = distance;
 
-                last_inter = inter;
-                ray.tri = *it;
+                    last_inter = inter;
+                    ray.tri = *it;
+                }
             }
         }
 

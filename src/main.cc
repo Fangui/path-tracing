@@ -130,9 +130,9 @@ int main(int argc, char *argv[])
             else
             {
                 auto material = map.at(mat_names[r.tri.id]);
-                vect[idx] = Vector(material.ka.x_ * scene.a_light.x_,
-                                   material.ka.y_ * scene.a_light.y_,
-                                   material.ka.z_ * scene.a_light.z_); // ambient light
+//                vect[idx] = Vector(0.3f, 0.f, 0.f);
+
+                vect[idx] = material.ka * scene.a_light;
 
                 Vector color;
                 for (const auto &light : scene.lights)
@@ -151,12 +151,22 @@ int main(int argc, char *argv[])
                     if (spec_coef < 0)
                         spec_coef = 0;
                     float spec = pow(spec_coef, material.ns);
-
+                    
                     color += light.color * material.kd * diff;
                     if (material.illum != 1)
                         color += light.color * spec;
                 }
                vect[idx] += color;
+
+                if (vect[idx].x_ > 1)
+                    vect[idx].x_ = 1;
+
+                if (vect[idx].y_ > 1)
+                    vect[idx].y_ = 1;
+
+                if (vect[idx].z_ > 1)
+                    vect[idx].z_ = 1;
+
                 /*
                 auto direct_l = direct_light(r, d_lights, material);
                 Vector indirect_l(0.f, 0.f, 0.f);

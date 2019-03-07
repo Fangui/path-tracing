@@ -21,3 +21,5 @@ clean:
 
 test:
 	./$(BIN) ./examples/scenes/iron.json && feh out.ppm
+	./$(BIN) ./examples/scenes/car.json && feh out.ppm
+	./$(BIN) ./examples/scenes/eye.json && feh out.ppm

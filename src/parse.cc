@@ -280,6 +280,12 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
             unsigned cpt = 0;
             for (unsigned i = 2; i < line.size(); ++i)
             {
+                if (i < line.size() && line[i] == '/')
+                {
+                    i += 1;
+                    ++cpt;
+                }
+
                 while (i < line.size() && is_separator(line[i]))
                     ++i;
 
