@@ -35,8 +35,8 @@ public:
         KdNode();
         KdNode(iterator_v beg, iterator_v end);
 
-        std::shared_ptr<KdNode> left;
-        std::shared_ptr<KdNode> right;
+        std::unique_ptr<KdNode> left;
+        std::unique_ptr<KdNode> right;
 
         float box[6]; // pair min : impair max
         iterator_v beg; // beg is median of axis
@@ -77,7 +77,7 @@ public:
         }
     };
 
-    using childPtr = std::shared_ptr<KdNode>;
+    using childPtr = std::unique_ptr<KdNode>;
 
     KdTree(iterator_v beg, iterator_v end);
     void search(Ray &r, const Camera &cam,
@@ -99,12 +99,12 @@ public:
 private:
     static inline auto make_child()
     {
-        return std::make_shared<KdNode>();
+        return std::make_unique<KdNode>();
     }
 
     static inline auto make_child(iterator_v beg, iterator_v end)
     {
-        return std::make_shared<KdNode>(KdNode(beg, end));
+        return std::make_unique<KdNode>(KdNode(beg, end));
     }
 
     childPtr root_;
