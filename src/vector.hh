@@ -6,8 +6,21 @@
 class Vector
 {
 public:
-    Vector() : x_(0), y_(0), z_(0) {};
-    Vector(float x, float y, float z) : x_(x), y_(y), z_(z) {};
+    Vector()
+    {
+        for (unsigned i = 0; i < 3; ++i)
+            tab[i] = 0;
+        tab[3] = 1;
+    };
+    Vector(float x, float y, float z)
+    {
+      tab[0] = x;
+      tab[1] = y;
+      tab[2] = z;
+      tab[3] = 1;
+    }
+
+    /*
     Vector(float r1, float r2) // create a hemisphere
     {
         float sinTheta = sqrtf(1 - r1 * r1);
@@ -17,7 +30,8 @@ public:
         x_ = x;
         y_ = phi;
         z_ = z;
-    };
+    };*/
+
     Vector operator+(const Vector &rhs) const;
     Vector operator+=(const Vector &rhs);
     Vector operator-(const Vector &rhs) const;
@@ -26,6 +40,16 @@ public:
     Vector operator*=(float lambda);
     Vector operator*(const Vector &rhs) const;
     Vector operator*=(const Vector &rhs);
+    float operator[](unsigned idx) const { return tab[idx]; };
+
+    float& get_x(void) { return tab[0]; };
+    float& get_y(void) { return tab[1]; };
+    float& get_z(void) { return tab[2]; };
+
+    void set_x(float x) { tab[0] = x; };
+    void set_y(float y) { tab[1] = y; };
+    void set_z(float z) { tab[2] = z; };
+
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);
     Vector norm(void) const;
@@ -33,24 +57,18 @@ public:
 
     float dot_product(const Vector &rhs) const;
 
-    float get_dist() { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); };
+    float get_dist() { return sqrtf(tab[0] * tab[0] + tab[1] * tab[1] + tab[2] * tab[2]); };
 
     void set(float x, float y, float z)
     {
-        x_ = x;
-        y_ = y;
-        z_ = z;
+        tab[0] = x;
+        tab[1] = y;
+        tab[2] = z;
     }
 
-    Vector reflect(const Vector &i, const Vector &n)
-    {
-        return i - n * i.dot_product(n) * 2; // check formule
- //       return I - 2 * dotProduct(I, N) * N;
-    }
+    friend std::ostream& operator <<(std::ostream& os, const Vector &v);
+
 //private:
-    float x_;
-    float y_;
-    float z_;
+    float tab[4];
 };
 
-std::ostream& operator <<(std::ostream& os, const Vector &v);

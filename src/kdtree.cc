@@ -7,28 +7,28 @@
 
 const std::function<bool (Triangle, Triangle)> func[3] =
 {
-    [](Triangle a, Triangle b) { return a.get_mean().x_ < b.get_mean().x_; },
-    [](Triangle a, Triangle b) { return a.get_mean().y_ < b.get_mean().y_; },
-    [](Triangle a, Triangle b) { return a.get_mean().z_ < b.get_mean().z_; }
+    [](Triangle a, Triangle b) { return a.get_mean()[0] < b.get_mean()[0]; },
+    [](Triangle a, Triangle b) { return a.get_mean()[1] < b.get_mean()[1]; },
+    [](Triangle a, Triangle b) { return a.get_mean()[2] < b.get_mean()[2]; }
 };
 
 #define GET_MIN_MAX(idx, coord) \
-    if (box[idx] > beg->vertices[i].coord) \
-        box[idx] = beg->vertices[i].coord; \
-    if (box[idx + 1] < beg->vertices[i].coord) \
-        box[idx + 1] = beg->vertices[i].coord;
+    if (box[idx] > beg->vertices[i][coord]) \
+        box[idx] = beg->vertices[i][coord]; \
+    if (box[idx + 1] < beg->vertices[i][coord]) \
+        box[idx + 1] = beg->vertices[i][coord];
 
 static void get_extremum(float box[6], iterator_v beg,
                                        iterator_v end)
 {
-    box[0] = beg->vertices[0].x_;
-    box[1] = beg->vertices[0].x_;
+    box[0] = beg->vertices[0][0];
+    box[1] = beg->vertices[0][0];
 
-    box[2] = beg->vertices[0].y_;
-    box[3] = beg->vertices[0].y_;
+    box[2] = beg->vertices[0][1];
+    box[3] = beg->vertices[0][1];
 
-    box[4] = beg->vertices[0].z_;
-    box[5] = beg->vertices[0].z_;
+    box[4] = beg->vertices[0][2];
+    box[5] = beg->vertices[0][2];
 
     ++beg;
 
@@ -36,9 +36,9 @@ static void get_extremum(float box[6], iterator_v beg,
     {
         for (unsigned i = 0; i < 3; ++i)
         {
-            GET_MIN_MAX(0, x_);
-            GET_MIN_MAX(2, y_);
-            GET_MIN_MAX(4, z_);
+            GET_MIN_MAX(0, 0);
+            GET_MIN_MAX(2, 1);
+            GET_MIN_MAX(4, 2);
         }
         ++beg;
     }
@@ -100,11 +100,11 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
 bool KdTree::KdNode::inside_box(const Ray &ray) const
 {
     const Vector &origin = ray.o;
-    float tmin = (box[ray.sign[0]] - origin.x_) * ray.inv.x_;
-    float tmax = (box[1 - ray.sign[0]] - origin.x_) * ray.inv.x_;
+    float tmin = (box[ray.sign[0]] - origin[0]) * ray.inv[0];
+    float tmax = (box[1 - ray.sign[0]] - origin[0]) * ray.inv[0];
 
-    float tymin = (box[2 + ray.sign[1]] - origin.y_) * ray.inv.y_;
-    float tymax = (box[3 - ray.sign[1]] - origin.y_) * ray.inv.y_;
+    float tymin = (box[2 + ray.sign[1]] - origin[1]) * ray.inv[1];
+    float tymax = (box[3 - ray.sign[1]] - origin[1]) * ray.inv[1];
 
     if (tmin > tymax || tymin > tmax)
         return false;
@@ -115,8 +115,8 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
     if (tymax < tmax)
         tmax = tymax;
 
-    float tzmin = (box[4 + ray.sign[2]] - origin.z_) * ray.inv.z_;
-    float tzmax = (box[5 - ray.sign[2]] - origin.z_) * ray.inv.z_;
+    float tzmin = (box[4 + ray.sign[2]] - origin[2]) * ray.inv[2];
+    float tzmax = (box[5 - ray.sign[2]] - origin[2]) * ray.inv[2];
 
     if (tmin > tzmax || tzmin > tmax)
         return false;
@@ -150,18 +150,10 @@ void KdTree::KdNode::search(Ray &ray, const Camera &cam,
                 }
             }
         }
+        if (left != nullptr)
+            left.get()->search(ray, cam, dist, last_inter);
 
-        if (axis == 0)
-        {
-            SEARCH(x_);
-        }
-        else if (axis == 1)
-        {
-            SEARCH(y_);
-        }
-        else if (axis == 2)
-        {
-            SEARCH(z_);
-        }
+        if (right != nullptr)
+            right.get()->search(ray, cam, dist, last_inter);
     }
 }

@@ -2,100 +2,94 @@
 
 Vector Vector::operator+(const Vector &rhs) const
 {
-    return Vector(x_, y_, z_ ) += rhs;
+    return Vector(tab[0], tab[1], tab[2] ) += rhs;
 }
 
 Vector Vector::operator+=(const Vector &rhs)
 {
-    x_ += rhs.x_;
-    y_ += rhs.y_;
-    z_ += rhs.z_;
-
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] += rhs[i];
     return *this;
 }
 
 Vector Vector::operator-(const Vector &rhs) const
 {
-    return Vector(x_, y_, z_ ) -= rhs;
+    return Vector(tab[0], tab[1], tab[2]) -= rhs;
 }
 
 Vector Vector::operator-=(const Vector &rhs)
 {
-    x_ -= rhs.x_;
-    y_ -= rhs.y_;
-    z_ -= rhs.z_;
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] -= rhs[i];
 
     return *this;
 }
 
 Vector Vector::operator*(float lambda) const
 {
-    return Vector(x_, y_, z_ ) *= lambda;
+    return Vector(tab[0], tab[1], tab[2] ) *= lambda;
 }
 
 Vector Vector::operator*=(float lambda)
 {
-    x_ *= lambda;
-    y_ *= lambda;
-    z_ *= lambda;
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] *= lambda;
 
     return *this;
 }
 
 Vector Vector::operator*(const Vector &rhs) const
 {
-    return Vector(x_ * rhs.x_, y_ * rhs.y_, z_ * rhs.z_);
+    return Vector(tab[0] * rhs[0], tab[1] * rhs[1], tab[2] * rhs[2]);
 }
 
 Vector Vector::operator*=(const Vector &rhs)
 {
-    x_ *= rhs.x_;
-    y_ *= rhs.y_;
-    z_ *= rhs.z_;
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] *= rhs[i];
 
     return *this;
 }
 
 Vector Vector::cross_product(const Vector &rhs) const
 {
-    return Vector(x_, y_, z_).cross_product_inplace(rhs);
+    return Vector(tab[0], tab[1], tab[2]).cross_product_inplace(rhs);
 }
 
 Vector Vector::cross_product_inplace(const Vector &rhs)
 {
-    float x = y_ * rhs.z_ - z_ * rhs.y_;
-    float y = z_ * rhs.x_ - x_ * rhs.z_;
-    float z = x_ * rhs.y_ - y_ * rhs.x_;
+    float x = tab[1] * rhs[2] - tab[2] * rhs[1];
+    float y = tab[2] * rhs[0] - tab[0] * rhs[2];
+    float z = tab[0] * rhs[1] - tab[1] * rhs[0];
 
-    x_ = x;
-    y_ = y;
-    z_ = z;
+    tab[0] = x;
+    tab[1] = y;
+    tab[2] = z;
 
     return *this;
 }
 
 Vector Vector::norm(void) const
 {
-    return Vector(x_, y_, z_).norm_inplace();
+    return Vector(tab[0], tab[1], tab[2]).norm_inplace();
 }
 
 Vector Vector::norm_inplace(void)
 {
     float dist = this->get_dist();
 
-    x_ /= dist;
-    y_ /= dist;
-    z_ /= dist;
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] /= dist;
 
     return *this;
 }
 
 float Vector::dot_product(const Vector &rhs) const
 {
-    return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_;
+    return tab[0] * rhs[0] + tab[1] * rhs[1] + tab[2] * rhs[2];
 }
 
 std::ostream& operator <<(std::ostream& os, const Vector &v)
 {
-    return os << "x: " << v.x_ << " y: " << v.y_ << " z: " << v.z_;
+    return os << "x: " << v.tab[0] << " y: " << v.tab[1] << " z: " << v.tab[2];
 }

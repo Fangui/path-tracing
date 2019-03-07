@@ -151,22 +151,26 @@ int main(int argc, char *argv[])
                     if (spec_coef < 0)
                         spec_coef = 0;
                     float spec = pow(spec_coef, material.ns);
-                    
+
                     color += light.color * material.kd * diff;
+                    if (idx == 240363)
+                    {
+                        std::cout << diff << '\n';
+                        std::cout << color << '\n';
+                    }
                     if (material.illum != 1)
                         color += light.color * spec;
                 }
                vect[idx] += color;
 
-                if (vect[idx].x_ > 1)
-                    vect[idx].x_ = 1;
+                if (vect[idx][0] > 1)
+                    vect[idx].set_x(1);
 
-                if (vect[idx].y_ > 1)
-                    vect[idx].y_ = 1;
+                if (vect[idx][1] > 1)
+                    vect[idx].set_y(1);
 
-                if (vect[idx].z_ > 1)
-                    vect[idx].z_ = 1;
-
+                if (vect[idx][2] > 1)
+                    vect[idx].set_z(1);
                 /*
                 auto direct_l = direct_light(r, d_lights, material);
                 Vector indirect_l(0.f, 0.f, 0.f);

@@ -13,10 +13,10 @@ struct Ray
 {
     Ray(Vector &o, Vector &dir) : o(o), dir(dir)
     {
-        inv = Vector(1 / dir.x_, 1 / dir.y_, 1 / dir.z_);
-        sign[0] = inv.x_ < 0;
-        sign[1] = inv.y_ < 0;
-        sign[2] = inv.z_ < 0;
+        inv = Vector(1.f / dir[0], 1.f / dir[1], 1.f / dir[2]);
+        sign[0] = inv[0] < 0;
+        sign[1] = inv[1] < 0;
+        sign[2] = inv[2] < 0;
 
 
     };

@@ -35,20 +35,16 @@ Scene parse_scene(const std::string& filename)
         scene.width = (j["width"].get<int>());
 
         auto cpos = j["camera"]["pos"].begin();
-        scene.cam_pos.x_ = *(cpos++);
-        scene.cam_pos.y_ = *(cpos++);
-        scene.cam_pos.z_ = *(cpos++);
+        scene.cam_pos.set(cpos[0], cpos[1], cpos[2]);
 
         cpos = j["camera"]["u"].begin();
-        scene.cam_u.x_ = *(cpos++);
-        scene.cam_u.y_ = *(cpos++);
-        scene.cam_u.z_ = *(cpos++);
+        scene.cam_u.set(cpos[0], cpos[1], cpos[2]);
+
         scene.fov = j["camera"]["fov"];
 
         cpos = j["camera"]["v"].begin();
-        scene.cam_v.x_ = *(cpos++);
-        scene.cam_v.y_ = *(cpos++);
-        scene.cam_v.z_ = *(cpos++);
+        scene.cam_v.set(cpos[0], cpos[1], cpos[2]);
+
         auto objs = j["meshs"];
         for (auto e : objs)
             scene.objs.emplace_back(e);
@@ -89,8 +85,6 @@ Scene parse_scene(const std::string& filename)
                 std::cerr << "Light not implemented yet" << std::endl;
                 exit(2);
             }
-        //    else
-          //      scene.lights.emplace_back(Light(p, r));
         }
 
         auto objects = j["objects"];
@@ -101,21 +95,15 @@ Scene parse_scene(const std::string& filename)
 
             auto pos = e["position"].begin();
             Vector p(1, 1, 1);
-            p.x_ = *(pos++);
-            p.y_ = *(pos++);
-            p.z_ = *(pos++);
+            p.set(pos[0], pos[1], pos[2]);
 
             auto rot = e["rotation"].begin();
             Vector r(1, 1, 1);
-            r.x_ = *(rot++);
-            r.y_ = *(rot++);
-            r.z_ = *(rot++);
+            r.set(rot[0], rot[1], rot[2]);
 
             auto sc = e["scale"].begin();
             Vector s(1, 1, 1);
-            s.x_ = *(sc++);
-            s.y_ = *(sc++);
-            s.z_ = *(sc++);
+            s.set(sc[0], sc[1], sc[2]);
             scene.objects.emplace_back(Object(mesh, mtl, p, r, s));
         }
 
@@ -146,9 +134,9 @@ Scene parse_scene(const std::string& filename)
         for (auto e : scene.objects)
         {
             std::cout << "     mesh/mtl : " << e.mesh << " " << e.mtl << std::endl;
-            std::cout << "     pos : " << e.pos.x_ << " " << e.pos.y_ << " " << e.pos.z_ << std::endl;
-            std::cout << "     rot : " << e.rot.x_ << " " << e.rot.y_ << " " << e.rot.z_ << std::endl;
-            std::cout << "     scale : " << e.scale.x_ << " " << e.scale.y_ << " " << e.scale.z_ << std::endl;
+            std::cout << "     pos : " << e.pos[0] << " " << e.pos[1] << " " << e.pos[2] << std::endl;
+            std::cout << "     rot : " << e.rot[0] << " " << e.rot[1] << " " << e.rot[2] << std::endl;
+            std::cout << "     scale : " << e.scale[0] << " " << e.scale[1] << " " << e.scale[2] << std::endl;
             std::cout  << std::endl;
         }
     } catch (std::exception& e){
@@ -186,13 +174,13 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
                 if (id == "Ns")
                     strin >> trash >> ns;
                 else if (id == "Ka")
-                    strin >> trash >> ka.x_ >> ka.y_ >> ka.z_;
+                    strin >> trash >> ka.get_x() >> ka.get_y() >> ka.get_z();
                 else if (id == "Kd")
-                    strin >> trash >> kd.x_ >> kd.y_ >> kd.z_;
+                    strin >> trash >> kd.get_x() >> kd.get_y() >> kd.get_z();
                 else if (id == "Ks")
-                    strin >> trash >> ks.x_ >> ks.y_ >> ks.z_;
+                    strin >> trash >> ks.get_x() >> ks.get_y() >> ks.get_z();
                 else if (id == "Ke")
-                    strin >> trash >> ke.x_ >> ke.y_ >> ke.z_;
+                    strin >> trash >> ke.get_x() >> ke.get_y() >> ke.get_z();
                 else if (id == "Ni")
                     strin >> trash >> ni;
                 else if (id == "d ")
@@ -200,7 +188,7 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
                 else if (id == "il")
                     strin >> trash >> illum;
                 else if (id == "Tf")
-                    strin >> trash >> tf.x_ >> tf.y_ >> tf.z_;
+                    strin >> trash >> tf.get_x() >> tf.get_y() >> tf.get_z();
                 else if (id == "ma")
                     continue;
                 else
@@ -327,9 +315,9 @@ int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
         {
             for (int j = 0; j < height; ++j)
             {
-                int r = vect[index].x_ * 255.0;
-                int g = vect[index].y_ * 255.0;
-                int b = vect[index++].z_ * 255.0;
+                int r = vect[index][0] * 255.0;
+                int g = vect[index][1] * 255.0;
+                int b = vect[index++][2] * 255.0;
                 out << r << " " << g << " " << b << "  ";
             }
             out << '\n';

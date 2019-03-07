@@ -26,9 +26,9 @@ struct Triangle
 
         for (unsigned i = 0; i < 3; ++i)
         {
-            x += vertices[i].x_;
-            y += vertices[i].y_;
-            z += vertices[i].z_;
+            x += vertices[i][0];
+            y += vertices[i][1];
+            z += vertices[i][2];
         }
         mean = Vector(x / 3.f, y / 3.f, z / 3.f);
     }
