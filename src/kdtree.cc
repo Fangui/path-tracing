@@ -125,7 +125,7 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
 }
 
 void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
-                          float &dist)
+                          float &dist) const
  {
     if (left == right || inside_box(ray))
     {
@@ -173,4 +173,24 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
                 right.get()->search(ray, cam_pos, dist);
         }
     }
+}
+
+bool KdTree::KdNode::search_inter(const Ray &ray) const
+ {
+    if (left == right || inside_box(ray))
+    {
+        float t;
+        for (auto it = beg; it < end; ++it)
+        {
+            if (it->intersect(ray, t))
+                return true;
+        }
+
+        if (left != nullptr)
+            left.get()->search_inter(ray);
+
+        if (right != nullptr)
+            right.get()->search_inter(ray);
+    }
+    return false;
 }

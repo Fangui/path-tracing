@@ -5,6 +5,7 @@
 #include <omp.h>
 #include <unordered_map>
 
+#include "compute_light.hh"
 #include "kdtree.hh"
 #include "parse.hh"
 #include "vector.hh"
@@ -88,40 +89,8 @@ int main(int argc, char *argv[])
                 auto material = map.at(mat_names[r.tri.id]);
 //                vect[idx] = Vector(0.3f, 0.f, 0.f);
 
-                vect[idx] = material.ka * scene.a_light;
+                vect[idx] = direct_light(material, scene, r, tree);
 
-                Vector color;
-                for (const auto &light : scene.lights)
-                {
-                    Vector L = light.dir * -1;
-                    L.norm_inplace();
-                    Vector normal_n = r.tri.normal[0].norm();
-                    float diff = L.dot_product(normal_n);
-                    if (diff < 0)
-                        diff = 0;
-
-                    Vector R = L - normal_n * (2 * normal_n.dot_product(L));
-                    R.norm_inplace();
-
-                    float spec_coef = dir.norm().dot_product(R);
-                    if (spec_coef < 0)
-                        spec_coef = 0;
-                    float spec = pow(spec_coef, material.ns);
-
-                    color += light.color * material.kd * diff;
-                    if (material.illum != 1)
-                        color += light.color * spec;
-                }
-               vect[idx] += color;
-
-                if (vect[idx][0] > 1)
-                    vect[idx].set_x(1);
-
-                if (vect[idx][1] > 1)
-                    vect[idx].set_y(1);
-
-                if (vect[idx][2] > 1)
-                    vect[idx].set_z(1);
                 /*
                 auto direct_l = direct_light(r, d_lights, material);
                 Vector indirect_l(0.f, 0.f, 0.f);

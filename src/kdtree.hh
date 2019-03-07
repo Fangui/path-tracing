@@ -25,7 +25,9 @@ public:
         unsigned char axis = 0;
 
         void search(Ray &ray, const Vector &cam_pos,
-                    float &dist);
+                    float &dist) const;
+
+        bool search_inter(const Ray &ray) const;
 
         bool inside_box(const Ray &ray) const;
 
@@ -66,6 +68,13 @@ public:
     {
         root_.get()->search(r, cam_pos, dist);
     }
+
+
+    bool search_inter(const Ray &r) const
+    {
+        return root_.get()->search_inter(r);
+    }
+
 
     void print_infixe()
     {
