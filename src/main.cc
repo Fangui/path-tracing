@@ -135,20 +135,25 @@ int main(int argc, char *argv[])
                                    material.ka.z_ * scene.a_light.z_); // ambient light
 
                 Vector color;
-                for (auto light : scene.lights)
+                for (const auto &light : scene.lights)
                 {
                     Vector L = light.dir * -1;
                     L.norm_inplace();
                     Vector normal_n = r.tri.normal[0].norm();
                     float diff = L.dot_product(normal_n);
+                    if (diff < 0)
+                        diff = 0;
 
-    
-                    Vector R = (normal_n * (normal_n.dot_product(light.dir * -1) * 2) + light.dir).norm();
+                    Vector R = L - normal_n * (2 * normal_n.dot_product(L));
+                    R.norm_inplace();
 
-                    float spec  = pow(R.dot_product(dir), material.ns);
+                    float spec_coef = dir.norm().dot_product(R);
+                    if (spec_coef < 0)
+                        spec_coef = 0;
+                    float spec = pow(spec_coef, material.ns);
 
                     color += light.color * material.kd * diff;
-                    if (spec > 0 )
+                    if (material.illum != 1)
                         color += light.color * spec;
                 }
                vect[idx] += color;
