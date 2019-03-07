@@ -8,22 +8,6 @@
 
 using iterator_v = std::vector<Triangle>::iterator;
 
-struct Ray
-{
-    Ray(Vector &o, Vector &dir) : o(o), dir(dir)
-    {
-        inv = Vector(1.f / dir[0], 1.f / dir[1], 1.f / dir[2]);
-        sign[0] = inv[0] < 0;
-        sign[1] = inv[1] < 0;
-        sign[2] = inv[2] < 0;
-    };
-    Vector o;
-    Vector dir;
-    Vector inv;
-    Triangle tri;
-    short sign[3];
-};
-
 class KdTree
 {
 public:
@@ -41,7 +25,7 @@ public:
         unsigned char axis = 0;
 
         void search(Ray &ray, const Vector &cam_pos,
-                    float &dist, Vector &last_inter);
+                    float &dist);
 
         bool inside_box(const Ray &ray) const;
 
@@ -78,9 +62,9 @@ public:
 
     KdTree(iterator_v beg, iterator_v end);
     void search(Ray &r, const Vector &cam_pos,
-                    float &dist, Vector &last_inter)
+                    float &dist)
     {
-        root_.get()->search(r, cam_pos, dist, last_inter);
+        root_.get()->search(r, cam_pos, dist);
     }
 
     void print_infixe()

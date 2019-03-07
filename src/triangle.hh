@@ -5,11 +5,13 @@
 //#define EPSILON 1.19209290E-07F
 #define EPSILON 0.00001
 
+struct Ray;
+
 struct Triangle
 {
     Triangle(Vector &v1, Vector &v2, Vector &v3,
              Vector &n1, Vector &n2, Vector &n3,
-             unsigned id)
+             unsigned char id)
     { //FIXME
         vertices[0] = v1;
         vertices[1] = v2;
@@ -40,12 +42,27 @@ struct Triangle
         return mean;
     }
 
-    bool intersect(const Vector &o,
-                   const Vector &ray,
-                   Vector& out) const;
+    bool intersect(const Ray &ray,
+                   float &dist) const;
 
     Vector vertices[3];
     Vector normal[3];
     Vector mean;
-    unsigned id;
+    unsigned char id;
+};
+
+struct Ray
+{
+    Ray(Vector &o, Vector &dir) : o(o), dir(dir)
+    {
+        inv = Vector(1.f / dir[0], 1.f / dir[1], 1.f / dir[2]);
+        sign[0] = inv[0] < 0;
+        sign[1] = inv[1] < 0;
+        sign[2] = inv[2] < 0;
+    };
+    Vector o;
+    Vector dir;
+    Vector inv;
+    Triangle tri;
+    short sign[3];
 };

@@ -80,8 +80,7 @@ int main(int argc, char *argv[])
             Vector dir = scene.cam_pos - o;
             Ray r(o, dir);
             float dist = -1;
-            Vector out(0, 0, 0);
-            tree.search(r, scene.cam_pos, dist, out);
+            tree.search(r, scene.cam_pos, dist);
             if (dist == -1) // not found
                 vect[idx] = Vector(0.f, 0.f, 0.f);
             else
@@ -110,11 +109,6 @@ int main(int argc, char *argv[])
                     float spec = pow(spec_coef, material.ns);
 
                     color += light.color * material.kd * diff;
-                    if (idx == 240363)
-                    {
-                        std::cout << diff << '\n';
-                        std::cout << color << '\n';
-                    }
                     if (material.illum != 1)
                         color += light.color * spec;
                 }
