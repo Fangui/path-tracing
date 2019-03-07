@@ -68,7 +68,7 @@ public:
 
     friend std::ostream& operator <<(std::ostream& os, const Vector &v);
 
-//private:
+private:
     float tab[4];
 };
 

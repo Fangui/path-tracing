@@ -5,50 +5,9 @@
 #include <omp.h>
 #include <unordered_map>
 
-#include "camera.hh"
 #include "kdtree.hh"
 #include "parse.hh"
 #include "vector.hh"
-
-/*
-Vector direct_light(const Ray &r, lights, const Vector &hit, const Material &mat)
-{
-    Vector light(0, 0, 0);
-    float bias = 0.00001f;
-
-    Vector v_normal = r.tri.normal[0];
-
-    Vector shadow_o = r.dir.dot_product(v_normal) <  0 ?
-                        hit + bias * v_normal :
-                        hit - bias * v_normal; //FIXME normal
-
-    Vector light_amt(0, 0, 0);
-    Vector specular_color(0, 0, 0);
-
-    for (const auto &l : lights)
-    {
-        // Phong model
-        Vector dir_light = l.position - r.origin;
-        float len = dir_light.dot_product(dir_light);
-        dir_light.normalize();
-
-        float l_dot_n = l.dot_product(v_normal);
-        if (l_dot_n <= 0)
-            continue;
-
-        Ray r_light(shadow_o, dir_light);
-        float dist = -1;
-        Vector out(0, 0, 0);
-        tree.search(r_light, cam, dist, out);
-        if (dist == -1 || dist * dist < len)
-            continue;
-
-        light_amt *= l.intensity * l_dot_n;
-
-    }
-
-}
-*/
 
 int main(int argc, char *argv[])
 {
@@ -65,8 +24,6 @@ int main(int argc, char *argv[])
     double t1 = omp_get_wtime();
 
     Scene scene = parse_scene(path_scene);
-
-    Camera cam(scene.width, scene.height, scene.fov, scene.cam_pos, scene.cam_u, scene.cam_v);
 
     Vector u_n = scene.cam_u.norm();
     Vector w = scene.cam_v.norm();
@@ -124,7 +81,7 @@ int main(int argc, char *argv[])
             Ray r(o, dir);
             float dist = -1;
             Vector out(0, 0, 0);
-            tree.search(r, cam, dist, out);
+            tree.search(r, scene.cam_pos, dist, out);
             if (dist == -1) // not found
                 vect[idx] = Vector(0.f, 0.f, 0.f);
             else

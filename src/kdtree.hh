@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 
-#include "camera.hh"
 #include "triangle.hh"
 
 using iterator_v = std::vector<Triangle>::iterator;
@@ -17,8 +16,6 @@ struct Ray
         sign[0] = inv[0] < 0;
         sign[1] = inv[1] < 0;
         sign[2] = inv[2] < 0;
-
-
     };
     Vector o;
     Vector dir;
@@ -43,7 +40,7 @@ public:
         iterator_v end; // end = beg + 1 if not leaf
         unsigned char axis = 0;
 
-        void search(Ray &ray, const Camera &cam,
+        void search(Ray &ray, const Vector &cam_pos,
                     float &dist, Vector &last_inter);
 
         bool inside_box(const Ray &ray) const;
@@ -80,10 +77,10 @@ public:
     using childPtr = std::unique_ptr<KdNode>;
 
     KdTree(iterator_v beg, iterator_v end);
-    void search(Ray &r, const Camera &cam,
+    void search(Ray &r, const Vector &cam_pos,
                     float &dist, Vector &last_inter)
     {
-        root_.get()->search(r, cam, dist, last_inter);
+        root_.get()->search(r, cam_pos, dist, last_inter);
     }
 
     void print_infixe()

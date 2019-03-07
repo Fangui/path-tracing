@@ -124,13 +124,7 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
     return true;
 }
 
-#define SEARCH(coord) \
-    if (left != nullptr) \
-        left.get()->search(ray, cam, dist, last_inter);   \
-    if (right != nullptr) \
-        right.get()->search(ray, cam, dist, last_inter);
-
-void KdTree::KdNode::search(Ray &ray, const Camera &cam,
+void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
                           float &dist, Vector &last_inter)
  {
     if (left == right || inside_box(ray))
@@ -140,8 +134,8 @@ void KdTree::KdNode::search(Ray &ray, const Camera &cam,
         {
             if (it->intersect(ray.o, ray.dir, inter))
             {
-                float distance = (inter - cam.pos_).get_dist();
-                if (dist == -1 || dist > distance)
+                float distance = fabs(inter[2] - cam_pos[2]);
+                if (dist > distance || dist == -1)
                 {
                     dist = distance;
 
@@ -150,10 +144,34 @@ void KdTree::KdNode::search(Ray &ray, const Camera &cam,
                 }
             }
         }
-        if (left != nullptr)
-            left.get()->search(ray, cam, dist, last_inter);
 
-        if (right != nullptr)
-            right.get()->search(ray, cam, dist, last_inter);
+        if (axis == 2) // Good opti but may be dangerous
+        {
+            if (cam_pos[2] < beg->vertices[2][2])
+            {
+                float tmp = dist;
+                left.get()->search(ray, cam_pos, dist, last_inter);
+                if (tmp != dist)
+                    return;
+                right.get()->search(ray, cam_pos, dist, last_inter);
+            }
+            else
+            {
+                float tmp = dist;
+                right.get()->search(ray, cam_pos, dist, last_inter);
+                if (tmp != dist)
+                    return;
+                left.get()->search(ray, cam_pos, dist, last_inter);
+
+            }
+        }
+        else
+        {
+            if (left != nullptr)
+                left.get()->search(ray, cam_pos, dist, last_inter);
+
+            if (right != nullptr)
+                right.get()->search(ray, cam_pos, dist, last_inter);
+        }
     }
 }
