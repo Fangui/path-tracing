@@ -1,5 +1,11 @@
 #include "compute_light.hh"
 
+Vector reflect(const Vector& incident,
+               const Vector& normal)
+{
+    return incident - (normal * 2.0 * normal.dot_product(incident));
+}
+
 Vector direct_light(const Material &material, const Scene &scene,
                     const Ray &ray, const KdTree &tree)
 {
@@ -21,6 +27,7 @@ Vector direct_light(const Material &material, const Scene &scene,
             diff = 0;
 
         Vector R = L - normal_n * (2 * normal_n.dot_product(L));
+     //   Vector R = reflect(L, normal_n);
         R.norm_inplace();
 
         float spec_coef = ray.dir.norm().dot_product(R);
@@ -30,7 +37,7 @@ Vector direct_light(const Material &material, const Scene &scene,
 
         color += light.color * material.kd * diff;
         if (material.illum != 1)
-            color += light.color * spec;
+            color += (light.color * spec * material.ks);
     }
 
     color += material.ka * scene.a_light;

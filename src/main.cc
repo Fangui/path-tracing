@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
             o += b;
 
             Vector dir = scene.cam_pos - o;
+            dir.norm_inplace();
             Ray r(o, dir);
             float dist = -1;
             tree.search(r, scene.cam_pos, dist);

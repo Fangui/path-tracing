@@ -75,7 +75,7 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
 {
     unsigned dist = std::distance(beg, end);
     get_extremum(box, beg, end);
-    if (dist < 4)
+    if (dist < 8)
     {
         this->beg = beg;
         this->end = end;
@@ -87,7 +87,7 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
         axis = get_longest_axis(box);
 
         __gnu_parallel::sort(beg, end, func[axis]);
-        iterator_v med = beg + dist / 2;
+        const iterator_v med = beg + dist / 2;
 
         left = make_child(beg, med);
         right = make_child(med + 1, end);
@@ -135,7 +135,8 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
             if (it->intersect(ray, t))
             {
                 Vector inter = ray.o + ray.dir * t;
-                float distance = fabs(inter[2] - cam_pos[2]);
+                float distance = (inter - cam_pos).get_dist();
+            //    float distance = fabs(inter[2] - cam_pos[2]);
                 if (dist > distance || dist == -1)
                 {
                     dist = distance;
