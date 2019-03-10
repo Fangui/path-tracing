@@ -20,7 +20,7 @@ clean:
 	${RM} ${OBJS}
 	${RM} $(BIN)
 
-test:
+test: $(BIN)
 	./$(BIN) ./examples/scenes/test.json && feh out.ppm
 	./$(BIN) ./examples/scenes/iron.json && feh out.ppm
 	./$(BIN) ./examples/scenes/car.json && feh out.ppm

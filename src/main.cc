@@ -26,9 +26,10 @@ int main(int argc, char *argv[])
 
     Scene scene = parse_scene(path_scene);
 
-    Vector u_n = scene.cam_u.norm();
-    Vector w = scene.cam_v.norm();
-    w = w.cross_product_inplace(u_n);
+    Vector u_n = scene.cam_u.norm_inplace();
+    Vector v = scene.cam_v.norm_inplace();
+
+    Vector w = v.cross_product(u_n);
 
     float val = tanf(scene.fov * M_PI / 360);
     val = val == 0.0 ? 0.0001 : val;
