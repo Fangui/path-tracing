@@ -42,8 +42,8 @@ struct Triangle
         return mean;
     }
 
-    bool intersect(Ray &ray,
-                   float &dist) const;
+    bool intersect(Ray &ray, float &dist) const;
+    bool intersect(const Ray &ray) const;
 
     Vector vertices[3];
     Vector normal[3];

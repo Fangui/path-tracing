@@ -127,7 +127,7 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
 void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
                           float &dist) const
  {
-    if (left == right || inside_box(ray))
+    if (is_child() || inside_box(ray))
     {
         float t;
         for (auto it = beg; it < end; ++it)
@@ -144,7 +144,7 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
                     dist = distance;
                     ray.tri = *it;
                 }
-                else
+                else // restore u v
                 {
                     ray.u = u;
                     ray.v = v;
@@ -154,22 +154,20 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
 
         if (axis == 2) // Good opti but may be dangerous
         {
+            float prev_dist = dist;
             if (cam_pos[2] < beg->vertices[2][2])
             {
-                float tmp = dist;
                 left.get()->search(ray, cam_pos, dist);
-                if (tmp != dist)
+                if (prev_dist != dist) // find closer no need to visit 
                     return;
                 right.get()->search(ray, cam_pos, dist);
             }
             else
             {
-                float tmp = dist;
                 right.get()->search(ray, cam_pos, dist);
-                if (tmp != dist)
+                if (prev_dist != dist)
                     return;
                 left.get()->search(ray, cam_pos, dist);
-
             }
         }
         else
@@ -183,22 +181,14 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
     }
 }
 
-bool KdTree::KdNode::search_inter(Ray &ray) const
+bool KdTree::KdNode::search_inter(const Ray &ray) const
  {
-     float u = ray.u;
-     float v = ray.v; //FIXME
-
-    if (left == right || inside_box(ray))
+    if (is_child() || inside_box(ray))
     {
-        float t;
         for (auto it = beg; it < end; ++it)
         {
-            if (it->intersect(ray, t))
-            {
-                ray.u = u;
-                ray.v = v;
+            if (it->intersect(ray))
                 return true;
-            }
         }
 
         if (left != nullptr && left.get()->search_inter(ray))

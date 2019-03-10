@@ -16,19 +16,20 @@ Vector direct_light(const Material &material, const Scene &scene,
         Vector L = light.dir * -1;
         L.norm_inplace();
 
-        Vector o_shadow = inter + L * 0.001;
+        Vector o_shadow = inter + L * 0.001; // biais
         Ray shadow_ray(o_shadow, L);
 
-        if (tree.search_inter(shadow_ray))
-            continue;
-
-        Vector normal_n = ray.tri.normal[0] * (1 - ray.u - ray.v) + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v; //FIXME
+        float diff = 0.f;
+        Vector normal_n = ray.tri.normal[0] * (1 - ray.u - ray.v) 
+                        + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v; //FIXME
         normal_n.norm_inplace();
-        float diff = L.dot_product(normal_n);
-        if (diff < 0)
-            diff = 0;
 
-     //   Vector R = L - normal_n * (2 * normal_n.dot_product(L));
+        if (!tree.search_inter(shadow_ray))
+        {
+            diff = L.dot_product(normal_n);
+            if (diff < 0)
+                diff = 0;
+        }
         Vector R = reflect(L, normal_n);
         R.norm_inplace();
 
@@ -37,7 +38,8 @@ Vector direct_light(const Material &material, const Scene &scene,
             spec_coef = 0;
         float spec = pow(spec_coef, material.ns);
 
-        color += light.color * material.kd * diff;
+        if (diff)
+            color += light.color * material.kd * diff;
         if (material.illum != 1)
             color += (light.color * spec * material.ks);
     }

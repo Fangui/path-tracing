@@ -27,9 +27,11 @@ public:
         void search(Ray &ray, const Vector &cam_pos,
                     float &dist) const;
 
-        bool search_inter(Ray &ray) const;
+        bool search_inter(const Ray &ray) const;
 
         bool inside_box(const Ray &ray) const;
+
+        inline bool is_child(void) const { return left == right; }
 
         unsigned size(void)
         {
@@ -47,7 +49,7 @@ public:
             if (left)
                 left.get()->print_infixe();
 
-            std::cout << "etremum: ";
+            std::cout << "extremum: ";
             for (unsigned i = 0; i < 6; ++i)
                 std::cout << box[i] << " ";
             std::cout << '\n';
@@ -63,14 +65,16 @@ public:
     using childPtr = std::unique_ptr<KdNode>;
 
     KdTree(iterator_v beg, iterator_v end);
-    void search(Ray &r, const Vector &cam_pos,
+    bool search(Ray &r, const Vector &cam_pos,
                     float &dist)
     {
         root_.get()->search(r, cam_pos, dist);
+
+        return dist != -1;
     }
 
 
-    bool search_inter(Ray &r) const
+    bool search_inter(const Ray &r) const
     {
         return root_.get()->search_inter(r);
     }

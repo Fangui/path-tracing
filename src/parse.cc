@@ -58,7 +58,6 @@ Scene parse_scene(const std::string& filename)
         for (auto e : lights)
         {
             std::string s = e["type"].get<std::string>();
-            int r = 1;
             Vector color(1, 1, 1);
             Vector dir(1, 1, 1);
 
