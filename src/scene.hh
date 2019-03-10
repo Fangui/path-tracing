@@ -3,8 +3,10 @@
 #include "light.hh"
 #include "object.hh"
 #include "matrix.hh"
+#include "material.hh"
 
 #include <vector>
+#include <unordered_map>
 
 struct Scene
 {
@@ -20,4 +22,6 @@ struct Scene
     Matrix transform;
     std::vector<Light> lights;
     std::vector<Object> objects;
+    std::vector<std::string> mat_names;
+    std::unordered_map<std::string, Material> map;
 };

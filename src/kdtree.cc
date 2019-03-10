@@ -124,8 +124,7 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
     return true;
 }
 
-void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
-                          float &dist) const
+void KdTree::KdNode::search(Ray &ray, float &dist) const
  {
     if (is_child() || inside_box(ray))
     {
@@ -137,8 +136,8 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
             if (it->intersect(ray, t))
             {
                 Vector inter = ray.o + ray.dir * t;
-                float distance = (inter - cam_pos).get_dist();
-            //    float distance = fabs(inter[2] - cam_pos[2]);
+                float distance = (inter - ray.o).get_dist();
+            //    float distance = fabs(inter[2] - ray.o[2]);
                 if (dist > distance || dist == -1)
                 {
                     dist = distance;
@@ -155,28 +154,28 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
         if (axis == 2) // Good opti but may be dangerous
         {
             float prev_dist = dist;
-            if (cam_pos[2] < beg->vertices[2][2])
+            if (ray.o[2] < beg->vertices[2][2])
             {
-                left.get()->search(ray, cam_pos, dist);
+                left.get()->search(ray, dist);
                 if (prev_dist != dist) // find closer no need to visit 
                     return;
-                right.get()->search(ray, cam_pos, dist);
+                right.get()->search(ray, dist);
             }
             else
             {
-                right.get()->search(ray, cam_pos, dist);
+                right.get()->search(ray, dist);
                 if (prev_dist != dist)
                     return;
-                left.get()->search(ray, cam_pos, dist);
+                left.get()->search(ray, dist);
             }
         }
         else
         {
             if (left != nullptr)
-                left.get()->search(ray, cam_pos, dist);
+                left.get()->search(ray, dist);
 
             if (right != nullptr)
-                right.get()->search(ray, cam_pos, dist);
+                right.get()->search(ray, dist);
         }
     }
 }

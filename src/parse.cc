@@ -73,11 +73,11 @@ Scene parse_scene(const std::string& filename)
                 dir.set(pos[0], pos[1], pos[2]);
             }
 
-
             if (s == "ambient")
                 scene.a_light = color;
             else if (s == "directional")
             {
+                dir.norm_inplace();
                 scene.lights.push_back(Light(color, dir));
             }
             else

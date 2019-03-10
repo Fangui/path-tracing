@@ -50,6 +50,10 @@ int main(int argc, char *argv[])
     std::vector<Triangle> vertices;
     for (const auto& name : scene.objs)
       obj_to_vertices(name, mat_names, vertices);
+
+    scene.mat_names = mat_names;
+    scene.map = map;
+
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
 
@@ -82,18 +86,8 @@ int main(int argc, char *argv[])
             Vector dir = o - scene.cam_pos;
             dir.norm_inplace();
             Ray r(scene.cam_pos, dir);
-            float dist = -1;
-            tree.search(r, scene.cam_pos, dist);
-            if (dist == -1) // not found
-                vect[idx] = Vector(0.f, 0.f, 0.f);
-            else
-            {
-                auto material = map.at(mat_names[r.tri.id]);
-//                vect[idx] = Vector(0.3f, 0.f, 0.f);
 
-                vect[idx] = direct_light(material, scene, r, tree, r.o + r.dir * dist);
-
-            }
+            vect[idx] = cast_ray(scene, r, tree, 0); // depth
         }
     }
     t2 = omp_get_wtime();

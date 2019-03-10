@@ -24,8 +24,7 @@ public:
         iterator_v end; // end = beg + 1 if not leaf
         unsigned char axis = 0;
 
-        void search(Ray &ray, const Vector &cam_pos,
-                    float &dist) const;
+        void search(Ray &ray, float &dist) const;
 
         bool search_inter(const Ray &ray) const;
 
@@ -65,10 +64,9 @@ public:
     using childPtr = std::unique_ptr<KdNode>;
 
     KdTree(iterator_v beg, iterator_v end);
-    bool search(Ray &r, const Vector &cam_pos,
-                    float &dist)
-    {
-        root_.get()->search(r, cam_pos, dist);
+    bool search(Ray &r, float &dist) const
+{
+        root_.get()->search(r, dist);
 
         return dist != -1;
     }
