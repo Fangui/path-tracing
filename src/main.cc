@@ -78,9 +78,9 @@ int main(int argc, char *argv[])
             o += C;
             o += b;
 
-            Vector dir = scene.cam_pos - o;
+            Vector dir = o - scene.cam_pos;
             dir.norm_inplace();
-            Ray r(o, dir);
+            Ray r(scene.cam_pos, dir);
             float dist = -1;
             tree.search(r, scene.cam_pos, dist);
             if (dist == -1) // not found
@@ -90,31 +90,8 @@ int main(int argc, char *argv[])
                 auto material = map.at(mat_names[r.tri.id]);
 //                vect[idx] = Vector(0.3f, 0.f, 0.f);
 
-                vect[idx] = direct_light(material, scene, r, tree);
+                vect[idx] = direct_light(material, scene, r, tree, r.o + r.dir * dist);
 
-                /*
-                auto direct_l = direct_light(r, d_lights, material);
-                Vector indirect_l(0.f, 0.f, 0.f);
-
-                const unsigned nb_ray = 2;
-                for (unsigned i = 0; i < nb_ray; ++i)
-                {
-                    float r1 = static_cast<float>(rand()) / static_cast <float> (RAND_MAX); // fixme random uniform
-                    float r2 = static_cast<float>(rand()) / static_cast <float> (RAND_MAX);
-
-                    Vector new_dir(Vector(r1, r2));
-                    Ray ray(o, new_dir);
-
-                    tree.search(ray, cam, dist, out, mat); // if intersect, compute indirect_l
-                    indirect_l *= 2 * M_PI;
-
-                }
-                indirect_l *= static_cast<float>(1 / nb_ray);*/
-
-                /*
-                vect[idx] *= (1 / M_PI);
-                vect[idx] += indirect_l * 2; // * albedo
-                */
             }
         }
     }

@@ -1,7 +1,5 @@
 *.o
 main
-*.obj
-*.mtl
 *.max
 *.fbx
 *.ppm

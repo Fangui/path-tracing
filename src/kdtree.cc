@@ -187,11 +187,11 @@ bool KdTree::KdNode::search_inter(const Ray &ray) const
                 return true;
         }
 
-        if (left != nullptr)
-            left.get()->search_inter(ray);
+        if (left != nullptr && left.get()->search_inter(ray))
+            return true;
 
-        if (right != nullptr)
-            right.get()->search_inter(ray);
+        if (right != nullptr && right.get()->search_inter(ray))
+            return true;
     }
     return false;
 }
