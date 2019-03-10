@@ -27,7 +27,7 @@ public:
         void search(Ray &ray, const Vector &cam_pos,
                     float &dist) const;
 
-        bool search_inter(const Ray &ray) const;
+        bool search_inter(Ray &ray) const;
 
         bool inside_box(const Ray &ray) const;
 
@@ -70,7 +70,7 @@ public:
     }
 
 
-    bool search_inter(const Ray &r) const
+    bool search_inter(Ray &r) const
     {
         return root_.get()->search_inter(r);
     }

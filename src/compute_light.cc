@@ -22,7 +22,8 @@ Vector direct_light(const Material &material, const Scene &scene,
         if (tree.search_inter(shadow_ray))
             continue;
 
-        Vector normal_n = ray.tri.normal[0].norm(); //FIXME
+        Vector normal_n = ray.tri.normal[0] * (1 - ray.u - ray.v) + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v; //FIXME
+        normal_n.norm_inplace();
         float diff = L.dot_product(normal_n);
         if (diff < 0)
             diff = 0;
@@ -44,13 +45,13 @@ Vector direct_light(const Material &material, const Scene &scene,
     color += material.ka * scene.a_light;
 
     if (color[0] > 1)
-        color.set_x(1);
+        color[0] = 1;
 
     if (color[1] > 1)
-        color.set_y(1);
+        color[1] = 1;
 
     if (color[2] > 1)
-        color.set_z(1);
+        color[2] = 1;
 
     return color;
 }

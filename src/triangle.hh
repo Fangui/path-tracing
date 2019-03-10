@@ -42,13 +42,13 @@ struct Triangle
         return mean;
     }
 
-    bool intersect(const Ray &ray,
+    bool intersect(Ray &ray,
                    float &dist) const;
 
     Vector vertices[3];
     Vector normal[3];
     Vector mean;
-    unsigned char id;
+       unsigned char id;
 };
 
 struct Ray
@@ -64,5 +64,9 @@ struct Ray
     Vector dir;
     Vector inv;
     Triangle tri;
+
+    float u;
+    float v;
+
     short sign[3];
 };

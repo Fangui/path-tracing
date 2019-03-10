@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include "matrix.hh"
 #include <map>
 #include <exception>
 #include <string>
@@ -103,6 +104,30 @@ Scene parse_scene(const std::string& filename)
 
             auto sc = e["scale"].begin();
             Vector s(1, 1, 1);
+
+            Matrix translat{4, 4, {1.f, 0.f, 0.f, r[0],
+                                   0.f, 1.f, 0.f, r[1],
+                                   0.f, 0.f, 1.f, r[2],
+                                   0.f, 0.f, 0.f, 1.f}};
+
+            Matrix rotat1{3, 3, {1.f, 0.f, 0.f,
+                                0.f, cosf(to_rad(r[0])), sinf(to_rad(r[0])),
+                                0.f, -sinf(to_rad(r[0])), cosf(to_rad(r[0]))}};
+
+
+            Matrix rotat2{3, 3, {cosf(to_rad(r[1])), 0.f, -sinf(to_rad(r[1])),
+                                0.f, 1.f, 0.f,
+                                sinf(to_rad(r[1])), 0.f, cosf(to_rad(r[1]))}};
+
+            Matrix rotat3{3, 3, {cosf(to_rad(r[2])), sinf(to_rad(r[2])), 0.f,
+                                -sinf(to_rad(r[2])), cosf(to_rad(r[2])), 0.f,
+                                0.f, 0.f, 1.f}};
+
+
+            auto rotat = rotat1.mat_mul(rotat2);
+            rotat = rotat.mat_mul(rotat3);
+            scene.transform = rotat;
+
             s.set(sc[0], sc[1], sc[2]);
             scene.objects.emplace_back(Object(mesh, mtl, p, r, s));
         }
@@ -174,13 +199,13 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
                 if (id == "Ns")
                     strin >> trash >> ns;
                 else if (id == "Ka")
-                    strin >> trash >> ka.get_x() >> ka.get_y() >> ka.get_z();
+                    strin >> trash >> ka[0] >> ka[1] >> ka[2];
                 else if (id == "Kd")
-                    strin >> trash >> kd.get_x() >> kd.get_y() >> kd.get_z();
+                    strin >> trash >> kd[0] >> kd[1] >> kd[2];
                 else if (id == "Ks")
-                    strin >> trash >> ks.get_x() >> ks.get_y() >> ks.get_z();
+                    strin >> trash >> ks[0] >> ks[1] >> ks[2];
                 else if (id == "Ke")
-                    strin >> trash >> ke.get_x() >> ke.get_y() >> ke.get_z();
+                    strin >> trash >> ke[0] >> ke[1] >> ke[2];
                 else if (id == "Ni")
                     strin >> trash >> ni;
                 else if (id == "d ")
@@ -188,7 +213,7 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
                 else if (id == "il")
                     strin >> trash >> illum;
                 else if (id == "Tf")
-                    strin >> trash >> tf.get_x() >> tf.get_y() >> tf.get_z();
+                    strin >> trash >> tf[0] >> tf[1] >> tf[2];
                 else if (id == "ma")
                     continue;
                 else

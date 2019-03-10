@@ -132,6 +132,8 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
         float t;
         for (auto it = beg; it < end; ++it)
         {
+            float u = ray.u;
+            float v = ray.v; //FIXME
             if (it->intersect(ray, t))
             {
                 Vector inter = ray.o + ray.dir * t;
@@ -141,6 +143,11 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
                 {
                     dist = distance;
                     ray.tri = *it;
+                }
+                else
+                {
+                    ray.u = u;
+                    ray.v = v;
                 }
             }
         }
@@ -176,15 +183,22 @@ void KdTree::KdNode::search(Ray &ray, const Vector &cam_pos,
     }
 }
 
-bool KdTree::KdNode::search_inter(const Ray &ray) const
+bool KdTree::KdNode::search_inter(Ray &ray) const
  {
+     float u = ray.u;
+     float v = ray.v; //FIXME
+
     if (left == right || inside_box(ray))
     {
         float t;
         for (auto it = beg; it < end; ++it)
         {
             if (it->intersect(ray, t))
+            {
+                ray.u = u;
+                ray.v = v;
                 return true;
+            }
         }
 
         if (left != nullptr && left.get()->search_inter(ray))

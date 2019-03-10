@@ -3,7 +3,7 @@ VPATH=src/
 CXXFLAGS += -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp
 
 SRC = main.cc vector.cc kdtree.cc triangle.cc material.cc parse.cc light.cc \
-	compute_light.cc
+	compute_light.cc matrix.cc
 OBJS = ${SRC:.cc=.o}
 BIN = main
 

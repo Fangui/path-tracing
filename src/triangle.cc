@@ -1,6 +1,6 @@
 #include "triangle.hh"
 
-bool Triangle::intersect(const Ray &ray,
+bool Triangle::intersect(Ray &ray,
                          float &dist) const
 {
     Vector vertex0 = vertices[0];
@@ -30,6 +30,8 @@ bool Triangle::intersect(const Ray &ray,
     float t = f * edge2.dot_product(s);
     if (t > EPSILON) // ray intersection
     {
+        ray.u = u;
+        ray.v = v;
         dist = t;
         return true;
     }

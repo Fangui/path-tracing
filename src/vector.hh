@@ -3,6 +3,11 @@
 #include <cmath>
 #include <iostream>
 
+inline float to_rad(int deg)
+{
+    return deg * (M_PI / 180.0);
+}
+
 class Vector
 {
 public:
@@ -41,14 +46,7 @@ public:
     Vector operator*(const Vector &rhs) const;
     Vector operator*=(const Vector &rhs);
     float operator[](unsigned idx) const { return tab[idx]; };
-
-    float& get_x(void) { return tab[0]; };
-    float& get_y(void) { return tab[1]; };
-    float& get_z(void) { return tab[2]; };
-
-    void set_x(float x) { tab[0] = x; };
-    void set_y(float y) { tab[1] = y; };
-    void set_z(float z) { tab[2] = z; };
+    float& operator[](unsigned idx) { return tab[idx]; };
 
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);
