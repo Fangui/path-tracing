@@ -25,6 +25,7 @@ Vector cast_ray(const Scene &scene,
         Vector direct_color = direct_light(scene, material, ray, 
                                            tree, inter, normal);
 
+        return direct_color;
         Vector indirect_color = indirect_light(scene, tree, 
                                                inter, normal, depth);
 

@@ -4,6 +4,7 @@
 #include "object.hh"
 #include "matrix.hh"
 #include "material.hh"
+#include "texture.hh"
 
 #include <vector>
 #include <unordered_map>
@@ -24,4 +25,5 @@ struct Scene
     std::vector<Object> objects;
     std::vector<std::string> mat_names;
     std::unordered_map<std::string, Material> map;
+    std::unordered_map<std::string, Texture> map_kd;
 };

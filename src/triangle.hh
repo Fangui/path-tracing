@@ -9,10 +9,11 @@ struct Ray;
 
 struct Triangle
 {
-    Triangle(Vector &v1, Vector &v2, Vector &v3,
-             Vector &n1, Vector &n2, Vector &n3,
+    Triangle(const Vector &v1, const Vector &v2, const Vector &v3,
+             const Vector &p1, const Vector &p2, const Vector &p3,
+             const Vector &n1, const Vector &n2, const Vector &n3,
              unsigned char id)
-    { //FIXME
+    {
         vertices[0] = v1;
         vertices[1] = v2;
         vertices[2] = v3;
@@ -20,6 +21,10 @@ struct Triangle
         normal[0] = n1;
         normal[1] = n2;
         normal[2] = n3;
+
+        uv_pos[0] = p1;
+        uv_pos[0] = p2;
+        uv_pos[0] = p3;
         this->id = id;
 
         float x = 0.f;
@@ -47,6 +52,7 @@ struct Triangle
 
     Vector vertices[3];
     Vector normal[3];
+    Vector uv_pos[3];
     Vector mean;
        unsigned char id;
 };

@@ -5,7 +5,8 @@
 struct Material
 {
     Material(float ns, Vector &ka, Vector &kd, Vector &ks,
-             Vector &ke, float ni, float d, int illum, Vector &tf)
+             Vector &ke, float ni, float d, int illum, Vector &tf,
+             const std::string &kd_name)
         : ns(ns)
         , ka(ka)
         , kd(kd)
@@ -15,6 +16,7 @@ struct Material
         , d(d)
         , illum(illum)
         , tf(tf)
+        , kd_name(kd_name)
     { }
 
     void dump();
@@ -28,4 +30,5 @@ struct Material
     float d;
     int illum;
     Vector tf;
+    std::string kd_name;
 };

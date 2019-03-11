@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
 
     Vector u_n = scene.cam_u.norm_inplace();
     Vector v = scene.cam_v.norm_inplace();
-
     Vector w = v.cross_product(u_n);
 
     float val = tanf(scene.fov * M_PI / 360);
@@ -36,23 +35,9 @@ int main(int argc, char *argv[])
     float L = scene.width / 2;
     L /= val; // distance between camera and center of screen
 
-    std::unordered_map<std::string, Material> map;
-    for (const auto& name : scene.mtls)
-        parse_materials(name, map);
-    std::vector<std::string> mat_names;
-    mat_names.reserve(map.size());
-    for (const auto &it : map)
-    {
-        //std::cout << it.first << std::endl;
-        mat_names.push_back(it.first);
-    }
-
     std::vector<Triangle> vertices;
     for (const auto& name : scene.objs)
-      obj_to_vertices(name, mat_names, vertices);
-
-    scene.mat_names = mat_names;
-    scene.map = map;
+      obj_to_vertices(name, scene.mat_names, vertices);
 
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
@@ -62,9 +47,7 @@ int main(int argc, char *argv[])
     t2 = omp_get_wtime();
     std::cout << "Time build kdTree: " << t2 - t1 << "s\n";
 
-  //  std::cout << vertices.size() << std::endl;
     std::cout << tree.size() << std::endl;
-//    tree.print_infixe();
 
     std::vector<Vector> vect(scene.width * scene.height);
 

@@ -166,9 +166,12 @@ Scene parse_scene(const std::string& filename)
     } catch (std::exception& e){
         std::cout << e.what() << std::endl;
     }
+
+    for (const auto& name : scene.mtls)
+        parse_materials(name, scene);
     return scene;
 }
-void parse_materials(const std::string &s, std::unordered_map<std::string, Material>& map)
+void parse_materials(const std::string &s, Scene &scene)
 {
     std::string name;
     std::ifstream in(s);
@@ -187,6 +190,8 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
         float d = 0;
         int illum = 0;
         Vector ka, ks, kd, ke, tf;
+        std::string map_kd;
+
         if (line.substr(0, 6) == "newmtl")
         {
             std::string trash;
@@ -213,6 +218,8 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
                     strin >> trash >> illum;
                 else if (id == "Tf")
                     strin >> trash >> tf[0] >> tf[1] >> tf[2];
+                else if (id == "map_Kd")
+                    strin >> trash >> map_kd;
                 else if (id == "ma")
                     continue;
                 else
@@ -222,11 +229,23 @@ void parse_materials(const std::string &s, std::unordered_map<std::string, Mater
                 if (id == "n")
                     break;
             }
-            Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf);
+            Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf, map_kd);
             //  std::cout << "newmtl " << name << std::endl;
             //  mat.dump();
-            map.emplace(std::make_pair(name, mat));
+            if (!map_kd.empty())
+            {
+                Texture t(map_kd);
+                scene.map_kd.emplace(std::make_pair(map_kd, t));
+            }
+            scene.map.emplace(std::make_pair(name, mat));
         }
+    }
+
+    scene.mat_names.reserve(scene.map.size());
+    for (const auto &it : scene.map)
+    {
+        //    std::cout << it.first << std::endl;
+        scene.mat_names.push_back(it.first);
     }
 }
 
@@ -235,6 +254,7 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
 {
     std::vector<Vector> v;
     std::vector<Vector> vn;
+    std::vector<Vector> vt;
 
     std::ifstream in(s);
 
@@ -268,6 +288,8 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
                 vn.push_back(vect);
             else if (line[1] == ' ')
                 v.push_back(vect); // v
+            else if (line[1] == 't')
+                vt.push_back(vect);
         }
         else if (line.substr(0, 6) == "usemtl")
         {
@@ -281,20 +303,20 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
                 ++cpt;
             }
 
-
             if (cpt == mat_names.size())
                 std::cerr << "Material name " << name << " not found \n";
-
             cur_idx = cpt;
         }
         else if (line[0] == 'f')
         {
             unsigned cpt = 0;
+            bool skip_vt = false;
             for (unsigned i = 2; i < line.size(); ++i)
             {
                 if (i < line.size() && line[i] == '/')
                 {
                     i += 1;
+                    skip_vt = true;
                     ++cpt;
                 }
 
@@ -308,15 +330,18 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
 
                 idx[cpt++] = stof(s) - 1;
             } // FIXME
-            if (vn.size() == 0) // if not vn in file
+
+            if (skip_vt) // if not vn in file
             {
                 Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                           v[0], v[0], v[0], cur_idx);
+                           v[0], v[0], v[0],  //trash
+                           vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
                 v_tri.push_back(t);
             }
             else
             {
                 Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
+                           vt[idx[1]], vt[idx[4]], vt[idx[7]],
                            vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
                 v_tri.push_back(t);
             }
