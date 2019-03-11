@@ -38,9 +38,9 @@ Texture::Texture(const std::string &name)
 
     this->pixels_.resize(height * width);
 
-    for (int x = 0; x < width; x++)
+    for (int x = 0; x < width; ++x)
     {
-        for (int y = 0; y < width; y++)
+        for (int y = 0; y < height; ++y)
         {
             this->set_color(x, y, get_pixel(image, x, y));
         }

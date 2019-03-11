@@ -22,12 +22,12 @@ class Texture
 
         Vector get_color(int x, int y)
         {
-            return this->pixels_[x * this->width_ + y];
+            return this->pixels_[x * this->height_ + y];
         }
 
         Vector& set_color(int x, int y, Vector c)
         {
-            return this->pixels_[x * this->width_ + y] = c;
+            return this->pixels_[x * this->height_ + y] = c;
         }
 
     private:
