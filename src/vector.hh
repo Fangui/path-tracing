@@ -45,8 +45,15 @@ public:
     Vector operator*=(float lambda);
     Vector operator*(const Vector &rhs) const;
     Vector operator*=(const Vector &rhs);
+    Vector operator/(const Vector &rhs) const;
+    Vector operator/=(const Vector &rhs);
+    Vector operator/(float lambda) const;
+    Vector operator/=(float lambda);
+
     float operator[](unsigned idx) const { return tab[idx]; };
     float& operator[](unsigned idx) { return tab[idx]; };
+
+   // Vector operator*(float lambda, const Vector &rhs);
 
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);
@@ -70,3 +77,5 @@ private:
     float tab[4];
 };
 
+Vector operator/(float lambda, const Vector &v);
+Vector operator*(float lambda, const Vector &v);

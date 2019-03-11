@@ -27,7 +27,7 @@ Vector Vector::operator-=(const Vector &rhs)
 
 Vector Vector::operator*(float lambda) const
 {
-    return Vector(tab[0], tab[1], tab[2] ) *= lambda;
+    return Vector(tab[0], tab[1], tab[2]) *= lambda;
 }
 
 Vector Vector::operator*=(float lambda)
@@ -49,6 +49,42 @@ Vector Vector::operator*=(const Vector &rhs)
         tab[i] *= rhs[i];
 
     return *this;
+}
+
+Vector Vector::operator/=(const Vector &rhs)
+{
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] /= rhs[i];
+
+    return *this;
+}
+
+Vector Vector::operator/(const Vector &rhs) const
+{
+    return Vector(tab[0] / rhs[0], tab[1] / rhs[1], tab[2] / rhs[2]);
+}
+
+Vector Vector::operator/=(float lambda)
+{
+    for (unsigned i = 0; i < 3; ++i)
+        tab[i] /= lambda;
+
+    return *this;
+}
+
+Vector Vector::operator/(float lambda) const
+{
+    return Vector(tab[0] / lambda, tab[1] / lambda, tab[2] / lambda);
+}
+
+Vector operator/(float lambda, const Vector &v)
+{
+    return v / lambda;
+}
+
+Vector operator*(float lambda, const Vector &v)
+{
+    return v * lambda;
 }
 
 Vector Vector::cross_product(const Vector &rhs) const
