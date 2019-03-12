@@ -10,7 +10,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth > 2) // max depth
+    if (depth > 1) // max depth
         return Vector(0.f, 0.f, 0.f);
 
     double dist = -1;
@@ -26,10 +26,10 @@ Vector cast_ray(const Scene &scene,
                                            tree, inter, normal, depth);
 
         return direct_color;
-        Vector indirect_color = indirect_light(scene, tree, 
+        Vector indirect_color = indirect_light(scene, tree,
                                                inter, normal, depth);
 
-        Vector res = direct_color * (1. / M_PI) + indirect_color * 2; //FIXME albedo
+        Vector res = (direct_color * 0.8) + (indirect_color  * 0.2); //FIXME albedo
         return res;
 
     }
@@ -85,7 +85,7 @@ Vector indirect_light(const Scene &scene,
         Ray ray(origin, sample_world);
         indirect_color += cast_ray(scene, ray, tree, depth + 1) * r1 * inv_pdf;
     }
-    indirect_color *= (1. / (double)nb_ray);
+    indirect_color /= (double)nb_ray;
 
     return indirect_color;
 }

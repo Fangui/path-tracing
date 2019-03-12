@@ -51,9 +51,9 @@ static void get_extremum(double box[6], iterator_v beg,
 
 static unsigned get_longest_axis(double box[6])
 {
-    double diff_x = fabs(box[1] - box[0]);
-    double diff_y = fabs(box[3] - box[2]);
-    double diff_z = fabs(box[5] - box[4]);
+    double diff_x = box[1] - box[0];
+    double diff_y = box[3] - box[2];
+    double diff_z = box[5] - box[4];
 
     if (diff_x > diff_y)
     {
@@ -63,6 +63,7 @@ static unsigned get_longest_axis(double box[6])
     }
     if (diff_y > diff_z)
         return 1;
+    
     return 2;
 }
 

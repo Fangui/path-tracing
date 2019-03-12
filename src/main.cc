@@ -75,6 +75,23 @@ int main(int argc, char *argv[])
     }
     t2 = omp_get_wtime();
     std::cout << "Time raytracing: " << t2 - t1 << "s\n";
+
+    /*
+    std::vector<Vector> out;
+
+    for (int i = 0; i < scene.width; i += 2)
+    {
+        for (int j = 0; j < scene.height; j += 2)
+        {
+            Vector c = (vect[i * scene.width + j] + vect[i * scene.width + j + 1] + 
+                        vect[(i + 1) * scene.height + j] 
+                      + vect[(i + 1) * scene.height + j + 1]) / 4;
+
+            out.push_back(c);
+        }
+    }*/
+
+    //return write_ppm("out.ppm", out, scene.width / 2, scene.height / 2);
     return write_ppm("out.ppm", vect, scene.width, scene.height);
 
 }
