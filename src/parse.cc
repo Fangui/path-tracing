@@ -218,8 +218,11 @@ void parse_materials(const std::string &s, Scene &scene)
                     strin >> trash >> illum;
                 else if (id == "Tf")
                     strin >> trash >> tf[0] >> tf[1] >> tf[2];
-                else if (id == "map_Kd")
-                    strin >> trash >> map_kd;
+                else if (id == "ma") // FIXME 
+                {
+                    if (line.substr(0,6) == "map_Kd")
+                        strin >> trash >> map_kd;
+                }
                 else if (id == "ma")
                     continue;
                 else
@@ -232,19 +235,19 @@ void parse_materials(const std::string &s, Scene &scene)
             Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf, map_kd);
             //  std::cout << "newmtl " << name << std::endl;
             //  mat.dump();
+            scene.map.emplace(std::make_pair(name, mat));
             if (!map_kd.empty())
             {
                 Texture t(map_kd);
                 scene.map_kd.emplace(std::make_pair(map_kd, t));
             }
-            scene.map.emplace(std::make_pair(name, mat));
         }
     }
 
     scene.mat_names.reserve(scene.map.size());
     for (const auto &it : scene.map)
     {
-        //    std::cout << it.first << std::endl;
+       // std::cout << it.second.ka << std::endl;
         scene.mat_names.push_back(it.first);
     }
 }
@@ -259,7 +262,6 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
     std::ifstream in(s);
 
     std::string line;
-    std::unordered_map<std::string, unsigned> map;
 
     float val[3];
     unsigned idx[9] = { 0 };
@@ -284,6 +286,9 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
             }
 
             Vector vect(val[0], val[1], val[2]);
+            if (cpt == 2) // vt has 2 vertices
+                vect[2] = -1;
+
             if (line[1] == 'n') // vn
                 vn.push_back(vect);
             else if (line[1] == ' ')
@@ -293,7 +298,7 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
         }
         else if (line.substr(0, 6) == "usemtl")
         {
-            auto name = line.substr(7, line.length());
+            const auto name = line.substr(7, line.length());
 
             unsigned cpt = 0;
             for (const auto &str : mat_names)
@@ -304,7 +309,10 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
             }
 
             if (cpt == mat_names.size())
+            {
                 std::cerr << "Material name " << name << " not found \n";
+                cur_idx = 0;
+            }
             cur_idx = cpt;
         }
         else if (line[0] == 'f')

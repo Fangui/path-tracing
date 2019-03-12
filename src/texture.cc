@@ -33,16 +33,36 @@ Texture::Texture(const std::string &name)
         throw std::runtime_error("cannot open image " + name);
     }
 
-    int height = image->h;
-    int width  = image->w;
+    this->height_ = image->h;
+    this->width_  = image->w;
 
-    this->pixels_.resize(height * width);
+    this->pixels_.resize(height_ * width_);
 
-    for (int x = 0; x < width; ++x)
+    for (int x = 0; x < width_; ++x)
     {
-        for (int y = 0; y < height; ++y)
+        for (int y = 0; y < height_; ++y)
         {
             this->set_color(x, y, get_pixel(image, x, y));
         }
     }
 }
+
+/*
+#include <iostream>
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+        return 1;
+
+    Texture t(argv[1]);
+    std::cout << t.get_height() <<std::endl;
+    std::cout << t.get_width() <<std::endl;
+    for (int i = 0; i < t.get_width(); ++i)
+    {
+        for (int j = 0; j < t.get_height(); ++j)
+        {
+            std::cout << t.get_color(i, j) << std::endl;
+        }
+    }
+    return 0;
+}*/

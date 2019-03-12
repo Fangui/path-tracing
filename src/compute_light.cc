@@ -25,6 +25,7 @@ Vector cast_ray(const Scene &scene,
         Vector direct_color = direct_light(scene, material, ray, 
                                            tree, inter, normal);
 
+
         return direct_color;
         Vector indirect_color = indirect_light(scene, tree, 
                                                inter, normal, depth);
@@ -118,7 +119,22 @@ Vector direct_light(const Scene &scene, const Material &material,
         float spec = pow(spec_coef, material.ns);
 
         if (diff)
-            color += light.color * material.kd * diff;
+        {
+            auto kd_map = scene.map_kd.find(material.kd_name);
+            if (kd_map != scene.map_kd.end())
+            {
+                auto pos = ray.tri.uv_pos;
+                const auto &map = kd_map->second;
+
+                const Vector &text = map.get_color(pos[0][0], pos[0][1]) * (1 - ray.u - ray.v) 
+                                   + map.get_color(pos[1][0], pos[1][1]) * ray.u 
+                                   + map.get_color(pos[2][0], pos[2][1]) * ray.v;
+                //const Vector &text = map.get_color(pos[0][0], pos[0][1]);
+                color += light.color *  text * diff;
+            }
+            else
+                color += light.color * material.kd * diff;
+        }
         if (material.illum != 1)
             color += (light.color * spec * material.ks);
     }

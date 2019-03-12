@@ -20,10 +20,30 @@ class Texture
             return this->height_;
         }
 
-        Vector get_color(int x, int y)
+        unsigned get_size() const
+        {
+            return pixels_.size();
+        }
+
+        Vector get_color(int x, int y) const
         {
             return this->pixels_[x * this->height_ + y];
         }
+
+        Vector get_color(float u, float v) const
+        {
+            while (u > 1)
+                u -= 1;
+            while (v > 1)
+                v -= 1;
+
+
+            int x = u * width_;
+            int y = v * height_;
+
+            return this->pixels_[x * this->height_ + y];
+        }
+
 
         Vector& set_color(int x, int y, Vector c)
         {
