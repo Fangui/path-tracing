@@ -37,7 +37,6 @@ class Texture
             while (v > 1)
                 v -= 1;
 
-
             int x = u * width_;
             int y = v * height_;
 

@@ -23,8 +23,7 @@ Vector cast_ray(const Scene &scene,
         normal.norm_inplace();
 
         Vector direct_color = direct_light(scene, material, ray, 
-                                           tree, inter, normal);
-
+                                           tree, inter, normal, depth);
 
         return direct_color;
         Vector indirect_color = indirect_light(scene, tree, 
@@ -93,7 +92,8 @@ Vector indirect_light(const Scene &scene,
 
 Vector direct_light(const Scene &scene, const Material &material,
                     const Ray &ray, const KdTree &tree, 
-                    const Vector &inter, const Vector &normal)
+                    const Vector &inter, const Vector &normal,
+                    int depth)
 {
     Vector color;
     for (const auto &light : scene.lights)
@@ -104,7 +104,8 @@ Vector direct_light(const Scene &scene, const Material &material,
         Ray shadow_ray(o_shadow, L);
 
         float diff = 0.f;
-        if (!tree.search_inter(shadow_ray))
+        bool b = tree.search_inter(shadow_ray);
+        if (!b)
         {
             diff = L.dot_product(normal);
             if (diff < 0)
@@ -118,7 +119,17 @@ Vector direct_light(const Scene &scene, const Material &material,
             spec_coef = 0;
         float spec = pow(spec_coef, material.ns);
 
-        if (diff)
+        if (material.illum == 4) //transparence
+        {
+            if (b)
+                continue;
+            Vector origin = inter + normal * 0.001;
+            Vector ref = reflect(light.dir, normal);
+            Ray r(origin, ref);
+
+            color +=  cast_ray(scene, r, tree, depth + 1);
+        }
+        else if (diff)
         {
             auto kd_map = scene.map_kd.find(material.kd_name);
             if (kd_map != scene.map_kd.end())

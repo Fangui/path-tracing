@@ -5,7 +5,7 @@
 
 Vector direct_light(const Scene &scene, const Material &mat,
                     const Ray &ray, const KdTree &tree,
-                    const Vector& inter, const Vector &normal);
+                    const Vector& inter, const Vector &normal, int depth);
 
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
