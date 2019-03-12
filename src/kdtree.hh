@@ -19,12 +19,12 @@ public:
         std::unique_ptr<KdNode> left;
         std::unique_ptr<KdNode> right;
 
-        float box[6]; // pair min : impair max
+        double box[6]; // pair min : impair max
         iterator_v beg; // beg is median of axis
         iterator_v end; // end = beg + 1 if not leaf
         unsigned char axis = 0;
 
-        void search(Ray &ray, float &dist) const;
+        void search(Ray &ray, double &dist) const;
 
         bool search_inter(const Ray &ray) const;
 
@@ -64,7 +64,7 @@ public:
     using childPtr = std::unique_ptr<KdNode>;
 
     KdTree(iterator_v beg, iterator_v end);
-    bool search(Ray &r, float &dist) const
+    bool search(Ray &r, double &dist) const
 {
         root_.get()->search(r, dist);
 

@@ -4,8 +4,8 @@
 
 struct Material
 {
-    Material(float ns, Vector &ka, Vector &kd, Vector &ks,
-             Vector &ke, float ni, float d, int illum, Vector &tf,
+    Material(double ns, Vector &ka, Vector &kd, Vector &ks,
+             Vector &ke, double ni, double d, int illum, Vector &tf,
              const std::string &kd_name)
         : ns(ns)
         , ka(ka)
@@ -21,13 +21,13 @@ struct Material
 
     void dump();
 
-    float ns;
+    double ns;
     Vector ka;
     Vector kd;
     Vector ks;
     Vector ke;
-    float ni;
-    float d;
+    double ni;
+    double d;
     int illum;
     Vector tf;
     std::string kd_name;

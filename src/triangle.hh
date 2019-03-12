@@ -27,9 +27,9 @@ struct Triangle
         uv_pos[0] = p3;
         this->id = id;
 
-        float x = 0.f;
-        float y = 0.f;
-        float z = 0.f;
+        double x = 0.f;
+        double y = 0.f;
+        double z = 0.f;
 
         for (unsigned i = 0; i < 3; ++i)
         {
@@ -47,7 +47,7 @@ struct Triangle
         return mean;
     }
 
-    bool intersect(Ray &ray, float &dist) const;
+    bool intersect(Ray &ray, double &dist) const;
     bool intersect(const Ray &ray) const;
 
     Vector vertices[3];
@@ -71,8 +71,8 @@ struct Ray
     Vector inv;
     Triangle tri;
 
-    float u;
-    float v;
+    double u;
+    double v;
 
     short sign[3];
 };

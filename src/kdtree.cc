@@ -18,7 +18,7 @@ const std::function<bool (Triangle, Triangle)> func[3] =
     if (box[idx + 1] < beg->vertices[i][coord]) \
         box[idx + 1] = beg->vertices[i][coord];
 
-static void get_extremum(float box[6], iterator_v beg,
+static void get_extremum(double box[6], iterator_v beg,
                                        iterator_v end)
 {
     box[0] = beg->vertices[0][0];
@@ -49,11 +49,11 @@ static void get_extremum(float box[6], iterator_v beg,
         box[i] += 0.1;
 }
 
-static unsigned get_longest_axis(float box[6])
+static unsigned get_longest_axis(double box[6])
 {
-    float diff_x = fabs(box[1] - box[0]);
-    float diff_y = fabs(box[3] - box[2]);
-    float diff_z = fabs(box[5] - box[4]);
+    double diff_x = fabs(box[1] - box[0]);
+    double diff_y = fabs(box[3] - box[2]);
+    double diff_z = fabs(box[5] - box[4]);
 
     if (diff_x > diff_y)
     {
@@ -100,11 +100,11 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
 bool KdTree::KdNode::inside_box(const Ray &ray) const
 {
     const Vector &origin = ray.o;
-    float tmin = (box[ray.sign[0]] - origin[0]) * ray.inv[0];
-    float tmax = (box[1 - ray.sign[0]] - origin[0]) * ray.inv[0];
+    double tmin = (box[ray.sign[0]] - origin[0]) * ray.inv[0];
+    double tmax = (box[1 - ray.sign[0]] - origin[0]) * ray.inv[0];
 
-    float tymin = (box[2 + ray.sign[1]] - origin[1]) * ray.inv[1];
-    float tymax = (box[3 - ray.sign[1]] - origin[1]) * ray.inv[1];
+    double tymin = (box[2 + ray.sign[1]] - origin[1]) * ray.inv[1];
+    double tymax = (box[3 - ray.sign[1]] - origin[1]) * ray.inv[1];
 
     if (tmin > tymax || tymin > tmax)
         return false;
@@ -115,8 +115,8 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
     if (tymax < tmax)
         tmax = tymax;
 
-    float tzmin = (box[4 + ray.sign[2]] - origin[2]) * ray.inv[2];
-    float tzmax = (box[5 - ray.sign[2]] - origin[2]) * ray.inv[2];
+    double tzmin = (box[4 + ray.sign[2]] - origin[2]) * ray.inv[2];
+    double tzmax = (box[5 - ray.sign[2]] - origin[2]) * ray.inv[2];
 
     if (tmin > tzmax || tzmin > tmax)
         return false;
@@ -124,20 +124,20 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
     return true;
 }
 
-void KdTree::KdNode::search(Ray &ray, float &dist) const
+void KdTree::KdNode::search(Ray &ray, double &dist) const
  {
     if (is_child() || inside_box(ray))
     {
-        float t;
+        double t;
         for (auto it = beg; it < end; ++it)
         {
-            float u = ray.u;
-            float v = ray.v; //FIXME
+            double u = ray.u;
+            double v = ray.v; //FIXME
             if (it->intersect(ray, t))
             {
                 Vector inter = ray.o + ray.dir * t;
-                float distance = (inter - ray.o).get_dist();
-            //    float distance = fabs(inter[2] - ray.o[2]);
+                double distance = (inter - ray.o).get_dist();
+            //    double distance = fabs(inter[2] - ray.o[2]);
                 if (dist > distance || dist == -1)
                 {
                     dist = distance;
@@ -153,7 +153,7 @@ void KdTree::KdNode::search(Ray &ray, float &dist) const
 
         if (axis == 2) // Good opti but may be dangerous
         {
-            float prev_dist = dist;
+            double prev_dist = dist;
             if (ray.o[2] < beg->vertices[2][2])
             {
                 left.get()->search(ray, dist);

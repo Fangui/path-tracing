@@ -185,9 +185,9 @@ void parse_materials(const std::string &s, Scene &scene)
 
     while (std::getline(in, line))
     {
-        float ns = 0;
-        float ni = 0;
-        float d = 0;
+        double ns = 0;
+        double ni = 0;
+        double d = 0;
         int illum = 0;
         Vector ka, ks, kd, ke, tf;
         std::string map_kd;
@@ -263,7 +263,7 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
 
     std::string line;
 
-    float val[3];
+    double val[3];
     unsigned idx[9] = { 0 };
     unsigned cur_idx = 0;
 

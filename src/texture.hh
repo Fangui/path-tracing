@@ -30,7 +30,7 @@ class Texture
             return this->pixels_[x * this->height_ + y];
         }
 
-        Vector get_color(float u, float v) const
+        Vector get_color(double u, double v) const
         {
             while (u > 1)
                 u -= 1;

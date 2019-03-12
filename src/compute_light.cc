@@ -13,7 +13,7 @@ Vector cast_ray(const Scene &scene,
     if (depth > 2) // max depth
         return Vector(0.f, 0.f, 0.f);
 
-    float dist = -1;
+    double dist = -1;
     if (tree.search(ray, dist))
     {
         const auto material = scene.map.at(scene.mat_names[ray.tri.id]);
@@ -46,19 +46,19 @@ void create_coordinate_system(const Vector &N, Vector &Nt, Vector &Nb)
     Nb = N.cross_product(Nt);
 } 
 
-Vector uniform_sample_hemisphere(float r1, float r2)
+Vector uniform_sample_hemisphere(double r1, double r2)
 {
-    float sinTheta = sqrtf(1 - r1 * r1);
-    float phi = 2 * M_PI * r2;
-    float x = sinTheta * cosf(phi);
-    float z = sinTheta * sinf(phi);
+    double sinTheta = sqrtf(1 - r1 * r1);
+    double phi = 2 * M_PI * r2;
+    double x = sinTheta * cosf(phi);
+    double z = sinTheta * sinf(phi);
     return Vector(x, r1, z);
   //  return Vector(x, z, r1); 
 }
 
 #include <random> 
 std::default_random_engine generator;
-std::uniform_real_distribution<float> distribution(0, 1); 
+std::uniform_real_distribution<double> distribution(0, 1); 
 
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
@@ -69,12 +69,12 @@ Vector indirect_light(const Scene &scene,
     Vector nb;
     Vector indirect_color;
     create_coordinate_system(normal, nt, nb);
-    constexpr float inv_pdf = 2 * M_PI;
+    constexpr double inv_pdf = 2 * M_PI;
 
     for (unsigned i = 0; i  < nb_ray; ++i)
     {
-        float r1 = distribution(generator);
-        float r2 = distribution(generator);
+        double r1 = distribution(generator);
+        double r2 = distribution(generator);
         Vector sample = uniform_sample_hemisphere(r1, r2);
         Vector sample_world(sample[0] * nb[0] + sample[1] * normal[0] + sample[2] * nt[0],
                             sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
@@ -85,7 +85,7 @@ Vector indirect_light(const Scene &scene,
         Ray ray(origin, sample_world);
         indirect_color += cast_ray(scene, ray, tree, depth + 1) * r1 * inv_pdf;
     }
-    indirect_color *= (1. / (float)nb_ray);
+    indirect_color *= (1. / (double)nb_ray);
 
     return indirect_color;
 }
@@ -103,9 +103,8 @@ Vector direct_light(const Scene &scene, const Material &material,
         Vector o_shadow = inter + L * 0.001; // biais
         Ray shadow_ray(o_shadow, L);
 
-        float diff = 0.f;
-        bool b = tree.search_inter(shadow_ray);
-        if (!b)
+        double diff = 0.f;
+        if (!tree.search_inter(shadow_ray))
         {
             diff = L.dot_product(normal);
             if (diff < 0)
@@ -114,15 +113,13 @@ Vector direct_light(const Scene &scene, const Material &material,
         Vector R = reflect(L, normal);
         R.norm_inplace();
 
-        float spec_coef = ray.dir.dot_product(R);
+        double spec_coef = ray.dir.dot_product(R);
         if (spec_coef < 0)
             spec_coef = 0;
-        float spec = pow(spec_coef, material.ns);
+        double spec = pow(spec_coef, material.ns);
 
         if (material.illum == 4) //transparence
         {
-            if (b)
-                continue;
             Vector origin = inter + normal * 0.001;
             Vector ref = reflect(light.dir, normal);
             Ray r(origin, ref);

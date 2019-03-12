@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
     Vector v = scene.cam_v.norm_inplace();
     Vector w = v.cross_product(u_n);
 
-    float val = tanf(scene.fov * M_PI / 360);
+    double val = tanf(scene.fov * M_PI / 360);
     val = val == 0.0 ? 0.0001 : val;
-    float L = scene.width / 2;
+    double L = scene.width / 2;
     L /= val; // distance between camera and center of screen
 
     std::vector<Triangle> vertices;

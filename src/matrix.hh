@@ -11,15 +11,15 @@ class Matrix
     public:
         Matrix() = default;
         Matrix(unsigned i, unsigned j);
-        Matrix(unsigned i, unsigned j, std::initializer_list<float> vals);
+        Matrix(unsigned i, unsigned j, std::initializer_list<double> vals);
 
         Matrix operator*(const Matrix&) const;
         Matrix mat_mul(const Matrix&) const;
 
         friend Vector operator*(const Vector& vec, const Matrix& mat);
 
-        float& operator[](unsigned pos);
-        float operator[](unsigned pos) const;
+        double& operator[](unsigned pos);
+        double operator[](unsigned pos) const;
 
         friend std::ostream& operator <<(std::ostream& os, 
                                          const Matrix& mat)
@@ -39,5 +39,5 @@ class Matrix
     private:
         unsigned lines_;
         unsigned cols_;
-        std::vector<float> content_;
+        std::vector<double> content_;
 };

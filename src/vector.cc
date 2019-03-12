@@ -25,12 +25,12 @@ Vector Vector::operator-=(const Vector &rhs)
     return *this;
 }
 
-Vector Vector::operator*(float lambda) const
+Vector Vector::operator*(double lambda) const
 {
     return Vector(tab[0], tab[1], tab[2]) *= lambda;
 }
 
-Vector Vector::operator*=(float lambda)
+Vector Vector::operator*=(double lambda)
 {
     for (unsigned i = 0; i < 3; ++i)
         tab[i] *= lambda;
@@ -64,7 +64,7 @@ Vector Vector::operator/(const Vector &rhs) const
     return Vector(tab[0] / rhs[0], tab[1] / rhs[1], tab[2] / rhs[2]);
 }
 
-Vector Vector::operator/=(float lambda)
+Vector Vector::operator/=(double lambda)
 {
     for (unsigned i = 0; i < 3; ++i)
         tab[i] /= lambda;
@@ -72,17 +72,17 @@ Vector Vector::operator/=(float lambda)
     return *this;
 }
 
-Vector Vector::operator/(float lambda) const
+Vector Vector::operator/(double lambda) const
 {
     return Vector(tab[0] / lambda, tab[1] / lambda, tab[2] / lambda);
 }
 
-Vector operator/(float lambda, const Vector &v)
+Vector operator/(double lambda, const Vector &v)
 {
     return v / lambda;
 }
 
-Vector operator*(float lambda, const Vector &v)
+Vector operator*(double lambda, const Vector &v)
 {
     return v * lambda;
 }
@@ -94,9 +94,9 @@ Vector Vector::cross_product(const Vector &rhs) const
 
 Vector Vector::cross_product_inplace(const Vector &rhs)
 {
-    float x = tab[1] * rhs[2] - tab[2] * rhs[1];
-    float y = tab[2] * rhs[0] - tab[0] * rhs[2];
-    float z = tab[0] * rhs[1] - tab[1] * rhs[0];
+    double x = tab[1] * rhs[2] - tab[2] * rhs[1];
+    double y = tab[2] * rhs[0] - tab[0] * rhs[2];
+    double z = tab[0] * rhs[1] - tab[1] * rhs[0];
 
     tab[0] = x;
     tab[1] = y;
@@ -112,7 +112,7 @@ Vector Vector::norm(void) const
 
 Vector Vector::norm_inplace(void)
 {
-    float dist = this->get_dist();
+    double dist = this->get_dist();
 
     for (unsigned i = 0; i < 3; ++i)
         tab[i] /= dist;
@@ -120,7 +120,7 @@ Vector Vector::norm_inplace(void)
     return *this;
 }
 
-float Vector::dot_product(const Vector &rhs) const
+double Vector::dot_product(const Vector &rhs) const
 {
     return tab[0] * rhs[0] + tab[1] * rhs[1] + tab[2] * rhs[2];
 }

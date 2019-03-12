@@ -10,7 +10,7 @@ Matrix::Matrix(unsigned i, unsigned j)
         content_[i] = 0;
 }
 
-Matrix::Matrix(unsigned i, unsigned j, std::initializer_list<float> vals)
+Matrix::Matrix(unsigned i, unsigned j, std::initializer_list<double> vals)
 {
     for (const auto& v : vals)
     {
@@ -36,13 +36,13 @@ Matrix Matrix::operator *(const Matrix& mat) const
     return *this;
 }
 
-float& Matrix::operator[](unsigned pos)
+double& Matrix::operator[](unsigned pos)
 {
     return content_[pos];
 }
 
 
-float Matrix::operator[](unsigned pos) const
+double Matrix::operator[](unsigned pos) const
 {
     return content_[pos];
 }

@@ -16,7 +16,7 @@ struct Scene
     Vector cam_pos;
     Vector cam_u;
     Vector cam_v;
-    float fov;
+    double fov;
     std::vector<std::string> objs;
     std::vector<std::string> mtls;
     Vector a_light;

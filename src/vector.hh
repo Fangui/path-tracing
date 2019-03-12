@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-inline float to_rad(int deg)
+inline double to_rad(int deg)
 {
     return deg * (M_PI / 180.0);
 }
@@ -17,7 +17,7 @@ public:
             tab[i] = 0;
         tab[3] = 1;
     };
-    Vector(float x, float y, float z)
+    Vector(double x, double y, double z)
     {
       tab[0] = x;
       tab[1] = y;
@@ -26,12 +26,12 @@ public:
     }
 
     /*
-    Vector(float r1, float r2) // create a hemisphere
+    Vector(double r1, double r2) // create a hemisphere
     {
-        float sinTheta = sqrtf(1 - r1 * r1);
-        float phi = 2 * M_PI * r2;
-        float x = sinTheta * cosf(phi);
-        float z = sinTheta * sinf(phi);
+        double sinTheta = sqrtf(1 - r1 * r1);
+        double phi = 2 * M_PI * r2;
+        double x = sinTheta * cosf(phi);
+        double z = sinTheta * sinf(phi);
         x_ = x;
         y_ = phi;
         z_ = z;
@@ -41,30 +41,30 @@ public:
     Vector operator+=(const Vector &rhs);
     Vector operator-(const Vector &rhs) const;
     Vector operator-=(const Vector &rhs);
-    Vector operator*(float lambda) const;
-    Vector operator*=(float lambda);
+    Vector operator*(double lambda) const;
+    Vector operator*=(double lambda);
     Vector operator*(const Vector &rhs) const;
     Vector operator*=(const Vector &rhs);
     Vector operator/(const Vector &rhs) const;
     Vector operator/=(const Vector &rhs);
-    Vector operator/(float lambda) const;
-    Vector operator/=(float lambda);
+    Vector operator/(double lambda) const;
+    Vector operator/=(double lambda);
 
-    float operator[](unsigned idx) const { return tab[idx]; };
-    float& operator[](unsigned idx) { return tab[idx]; };
+    double operator[](unsigned idx) const { return tab[idx]; };
+    double& operator[](unsigned idx) { return tab[idx]; };
 
-   // Vector operator*(float lambda, const Vector &rhs);
+   // Vector operator*(double lambda, const Vector &rhs);
 
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);
     Vector norm(void) const;
     Vector norm_inplace(void);
 
-    float dot_product(const Vector &rhs) const;
+    double dot_product(const Vector &rhs) const;
 
-    float get_dist() { return sqrtf(tab[0] * tab[0] + tab[1] * tab[1] + tab[2] * tab[2]); };
+    double get_dist() { return sqrtf(tab[0] * tab[0] + tab[1] * tab[1] + tab[2] * tab[2]); };
 
-    void set(float x, float y, float z)
+    void set(double x, double y, double z)
     {
         tab[0] = x;
         tab[1] = y;
@@ -74,8 +74,8 @@ public:
     friend std::ostream& operator <<(std::ostream& os, const Vector &v);
 
 private:
-    float tab[4];
+    double tab[4];
 };
 
-Vector operator/(float lambda, const Vector &v);
-Vector operator*(float lambda, const Vector &v);
+Vector operator/(double lambda, const Vector &v);
+Vector operator*(double lambda, const Vector &v);
