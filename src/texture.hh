@@ -32,10 +32,8 @@ class Texture
 
         Vector get_color(double u, double v) const
         {
-            while (u > 1)
-                u -= 1;
-            while (v > 1)
-                v -= 1;
+            u = fmod(fabs(u), 1);
+            v = fmod(fabs(v), 1);
 
             int x = u * width_;
             int y = v * height_;
@@ -49,7 +47,6 @@ class Texture
             return this->pixels_[x * this->height_ + y] = c;
         }
 
-    private:
         int width_;
         int height_;
 
