@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 
+#include <immintrin.h>
+
 inline double to_rad(int deg)
 {
     return deg * (M_PI / 180.0);
@@ -25,18 +27,6 @@ public:
       tab[3] = 1;
     }
 
-    /*
-    Vector(double r1, double r2) // create a hemisphere
-    {
-        double sinTheta = sqrtf(1 - r1 * r1);
-        double phi = 2 * M_PI * r2;
-        double x = sinTheta * cosf(phi);
-        double z = sinTheta * sinf(phi);
-        x_ = x;
-        y_ = phi;
-        z_ = z;
-    };*/
-
     Vector operator+(const Vector &rhs) const;
     Vector operator+=(const Vector &rhs);
     Vector operator-(const Vector &rhs) const;
@@ -51,9 +41,15 @@ public:
     Vector operator/=(double lambda);
 
     double operator[](unsigned idx) const { return tab[idx]; };
-    double& operator[](unsigned idx) { return tab[idx]; };
-
-   // Vector operator*(double lambda, const Vector &rhs);
+    double& operator[](unsigned idx) { 
+        if (idx == 0)
+            return this->coord.x;
+        else if (idx == 1)
+            return this->coord.y;
+        else if (idx == 2)
+            return this->coord.z;
+        return this->coord.r;
+    }
 
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);
@@ -74,7 +70,17 @@ public:
     friend std::ostream& operator <<(std::ostream& os, const Vector &v);
 
 private:
-    double tab[4];
+    union
+    {
+        struct
+        {
+            double x;
+            double y;
+            double z;
+            double r;
+        } coord;
+        __m256d tab;
+    };
 };
 
 Vector operator/(double lambda, const Vector &v);

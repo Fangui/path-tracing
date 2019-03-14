@@ -1,6 +1,6 @@
 CXX ?= g++
 VPATH=src/
-CXXFLAGS += -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp
+CXXFLAGS += -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp -march=native
 CXXLIBS += -lSDL2 -lSDL2_image
 
 SRC = main.cc vector.cc kdtree.cc triangle.cc material.cc parse.cc light.cc \
@@ -13,7 +13,7 @@ all: $(BIN)
 main: ${OBJS}
 	$(CXX) $(CXXFLAGS) $(CXXLIBS) $(OBJS) -o $(BIN)
 
-check: CXXFLAGS = -g3 -O0 -fno-inline -fsanitize=address -fopenmp
+check: CXXFLAGS += -g3 -O0 -fno-inline -fsanitize=address
 check: $(BIN)
 
 .PHONY: clean check
