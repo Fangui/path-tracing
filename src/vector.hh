@@ -10,21 +10,20 @@ inline double to_rad(int deg)
     return deg * (M_PI / 180.0);
 }
 
-class Vector
+class __attribute__((aligned (32))) Vector
 {
 public:
     Vector()
     {
-        for (unsigned i = 0; i < 3; ++i)
+        for (unsigned i = 0; i < 4; ++i)
             tab[i] = 0;
-        tab[3] = 1;
     };
     Vector(double x, double y, double z)
     {
       tab[0] = x;
       tab[1] = y;
       tab[2] = z;
-      tab[3] = 1;
+      tab[3] = 0;
     }
 
     Vector operator+(const Vector &rhs) const;
@@ -41,7 +40,8 @@ public:
     Vector operator/=(double lambda);
 
     double operator[](unsigned idx) const { return tab[idx]; };
-    double& operator[](unsigned idx) { 
+    double& operator[](unsigned idx) 
+    { 
         if (idx == 0)
             return this->coord.x;
         else if (idx == 1)
@@ -50,6 +50,8 @@ public:
             return this->coord.z;
         return this->coord.r;
     }
+
+    
 
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);

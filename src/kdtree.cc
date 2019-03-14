@@ -55,6 +55,14 @@ static void get_extremum(double box[6], iterator_v beg,
 
 static unsigned get_longest_axis(double box[6])
 {
+
+    static bool is_first = true;
+    if (is_first) // first case split in z for optimization
+    {
+        is_first = false;
+        return 2;
+    }
+
     double diff_x = box[1] - box[0];
     double diff_y = box[3] - box[2];
     double diff_z = box[5] - box[4];

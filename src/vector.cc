@@ -93,6 +93,12 @@ Vector Vector::cross_product_inplace(const Vector &rhs)
     tab[1] = y;
     tab[2] = z;
 
+    /*
+    tab = _mm256_sub_pd(_mm256_mul_pd(_mm256_shuffle_pd(tab, tab, _MM_SHUFFLE(3, 0, 2, 1)),
+                              _mm256_shuffle_pd(rhs.tab, rhs.tab, _MM_SHUFFLE(3,1,0,2))),
+                        _mm256_mul_pd(_mm256_shuffle_pd(tab, tab, _MM_SHUFFLE(3, 1, 0, 2)), 
+                              _mm256_shuffle_pd(rhs.tab, rhs.tab, _MM_SHUFFLE(3,0,2,1)))); */
+
     return *this;
 }
 

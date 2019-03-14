@@ -1,16 +1,72 @@
 #include "compute_light.hh"
 
+
+inline
+double clamp(double lo, double hi, double v)
+{ 
+    return std::max(lo, std::min(hi, v)); 
+} 
+
 Vector reflect(const Vector& incident,
-               const Vector& normal)
+                const Vector& normal)
 {
     return incident - (normal * (2.0 * normal.dot_product(incident)));
+}
+
+Vector refract(const Vector& incident,
+                const Vector& normal,
+                double ior)
+{
+    double cosi = incident.dot_product(normal);
+    cosi = clamp(-1, 1, cosi);
+    double etai = 1;
+
+    Vector n = normal;
+    if (cosi < 0)
+        cosi = -cosi;
+    else
+    {
+        std::swap(etai, ior);
+        n = -1 * normal;
+    }
+    double eta = etai / ior;
+    double k = 1 - eta * eta * (1 - cosi * cosi);
+
+    return k < 0 ? Vector(0, 0, 0) : eta * incident + (eta * cosi -sqrt(k)) * n;
+}
+
+double fresnel(const Vector &incident, 
+               const Vector &normal, 
+               double ior)
+{
+    double cosi = incident.dot_product(normal);
+    cosi = clamp(-1, 1, cosi);
+
+    double etai = 1;
+
+    if (cosi > 0)
+        std::swap(etai, ior);
+
+    double sint = etai / ior * sqrt(std::max(0., 1 - cosi * cosi));
+    // Total internal reflection
+    if (sint >= 1)
+        return 1;
+    else {
+        double cost = sqrt(std::max(0., 1 - sint * sint));
+        cosi = std::abs(cosi);
+        double Rs = ((ior * cosi) - (etai * cost)) / ((ior * cosi) + (etai * cost));
+        double Rp = ((etai * cosi) - (ior * cost)) / ((etai * cosi) + (ior * cost));
+        return (Rs * Rs + Rp * Rp) / 2;
+    }
+    // As a consequence of the conservation of energy, transmittance is given by:
+    // kt = 1 - kr;
 }
 
 Vector cast_ray(const Scene &scene, 
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth > 1) // max depth
+    if (depth > 4) // max depth
         return Vector(0.f, 0.f, 0.f);
 
     double dist = -1;
@@ -29,7 +85,7 @@ Vector cast_ray(const Scene &scene,
         Vector indirect_color = indirect_light(scene, tree,
                                                inter, normal, depth);
 
-        Vector res = direct_color  + (indirect_color  * 0.2); //FIXME albedo
+        Vector res = (direct_color / M_PI  + 2 * indirect_color)  * 0.2; //FIXME albedo
         return res;
 
     }
@@ -96,6 +152,57 @@ Vector direct_light(const Scene &scene, const Material &material,
                     int depth)
 {
     Vector color;
+
+
+    if (material.illum == 4) //transparence
+    {
+        //double kr = fresnel(light.dir, normal, material.ni);
+
+        Vector refr = reflect(ray.dir, normal);
+        double bias = 0.001;
+
+        Vector origin = inter + normal * bias;
+        Ray r(origin, refr);
+        r.ni = material.ni;
+
+        color += cast_ray(scene, r, tree, depth + 1) * 0.8;
+        return color;
+    }
+    else if (material.illum == 5)
+    {
+        Vector refl = reflect(ray.dir, normal).norm_inplace();
+        Vector refr = refract(ray.dir, normal, material.ni).norm_inplace();
+
+        double bias = 0.001;
+        if (refr.dot_product(normal) < 0)
+            bias = -bias;
+
+        Vector refr_ray_o = inter + normal * bias;
+        Ray r(refr_ray_o, refl);
+        Ray r_refr(refr_ray_o, refr);
+
+        r.ni = material.ni;
+        r_refr.ni = material.ni;
+
+        Vector refl_color = cast_ray(scene, r, tree, depth + 1);
+        Vector refr_color = cast_ray(scene, r_refr, tree, depth + 1);
+        double kr = fresnel(ray.dir, normal, material.ni);
+        return refl_color * kr + refr_color * (1 - kr); /*
+
+
+         double m = ray.ni / material.ni;
+         double c = (-1 * normal).dot_product(ray.dir);
+
+         Vector r = m * ray.dir + (m * c - sqrt(1 - m * m * (1 - c * c))) * normal;
+         Vector o = ray.o  + 0.001 * r;
+
+         Ray refr(o, r);
+         refr.ni = material.ni;
+
+         return cast_ray(scene, refr, tree, depth + 1) * 0.8;*/
+
+    }
+
     for (const auto &light : scene.lights)
     {
         Vector L = light.dir * -1;
@@ -118,15 +225,7 @@ Vector direct_light(const Scene &scene, const Material &material,
             spec_coef = 0;
         double spec = pow(spec_coef, material.ns);
 
-        if (material.illum == 4) //transparence
-        {
-            Vector origin = inter + normal * 0.001;
-            Vector ref = reflect(light.dir, normal);
-            Ray r(origin, ref);
-
-            color += cast_ray(scene, r, tree, depth + 1);
-        }
-        else if (diff)
+        if (diff)
         {
             auto kd_map = scene.map_kd.find(material.kd_name);
             if (kd_map != scene.map_kd.end())

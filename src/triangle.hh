@@ -54,7 +54,7 @@ struct Triangle
     Vector normal[3];
     Vector uv_pos[3];
     Vector mean;
-       unsigned char id;
+    unsigned char id;
 };
 
 struct Ray
@@ -65,6 +65,7 @@ struct Ray
         sign[0] = inv[0] < 0;
         sign[1] = inv[1] < 0;
         sign[2] = inv[2] < 0;
+        ni = 1;
     };
     Vector o;
     Vector dir;
@@ -73,6 +74,7 @@ struct Ray
 
     double u;
     double v;
+    double ni;
 
     short sign[3];
 };
