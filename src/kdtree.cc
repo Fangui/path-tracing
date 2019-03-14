@@ -30,15 +30,19 @@ static void get_extremum(double box[6], iterator_v beg,
     box[4] = beg->vertices[0][2];
     box[5] = beg->vertices[0][2];
 
-    ++beg;
-
     while (beg < end)
     {
         for (unsigned i = 0; i < 3; ++i)
         {
-            GET_MIN_MAX(0, 0);
-            GET_MIN_MAX(2, 1);
-            GET_MIN_MAX(4, 2);
+            box[0] = std::min(box[0], beg->vertices[i][0]);
+            box[1] = std::max(box[1], beg->vertices[i][0]);
+
+            box[2] = std::min(box[2], beg->vertices[i][1]);
+            box[3] = std::max(box[3], beg->vertices[i][1]);
+
+
+            box[4] = std::min(box[4], beg->vertices[i][2]);
+            box[5] = std::max(box[5], beg->vertices[i][2]);
         }
         ++beg;
     }
@@ -76,7 +80,7 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
 {
     unsigned dist = std::distance(beg, end);
     get_extremum(box, beg, end);
-    if (dist < 8)
+    if (dist < 4)
     {
         this->beg = beg;
         this->end = end;
@@ -86,8 +90,8 @@ KdTree::KdNode::KdNode(iterator_v beg, iterator_v end)
     else
     {
         axis = get_longest_axis(box);
-
         __gnu_parallel::sort(beg, end, func[axis]);
+
         const iterator_v med = beg + dist / 2;
 
         left = make_child(beg, med);
@@ -127,7 +131,7 @@ bool KdTree::KdNode::inside_box(const Ray &ray) const
 
 void KdTree::KdNode::search(Ray &ray, double &dist) const
  {
-    if (is_child() || inside_box(ray))
+    if (inside_box(ray))
     {
         double t;
         for (auto it = beg; it < end; ++it)
@@ -152,7 +156,7 @@ void KdTree::KdNode::search(Ray &ray, double &dist) const
             }
         }
 
-        if (axis == 2) // Good opti but may be dangerous
+        if (false && axis == 2) // Good opti but may be dangerous
         {
             double prev_dist = dist;
             if (ray.o[2] < beg->vertices[2][2])
@@ -183,7 +187,7 @@ void KdTree::KdNode::search(Ray &ray, double &dist) const
 
 bool KdTree::KdNode::search_inter(const Ray &ray) const
  {
-    if (is_child() || inside_box(ray))
+    if (left == nullptr || right == nullptr || inside_box(ray))
     {
         for (auto it = beg; it < end; ++it)
         {

@@ -29,7 +29,7 @@ Vector cast_ray(const Scene &scene,
         Vector indirect_color = indirect_light(scene, tree,
                                                inter, normal, depth);
 
-        Vector res = (direct_color * 0.8) + (indirect_color  * 0.2); //FIXME albedo
+        Vector res = direct_color  + (indirect_color  * 0.2); //FIXME albedo
         return res;
 
     }
@@ -64,7 +64,7 @@ Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
                       const Vector &normal, unsigned char depth)
 {
-    const unsigned nb_ray = 128;
+    const unsigned nb_ray = 4;
     Vector nt;
     Vector nb;
     Vector indirect_color;
@@ -124,7 +124,7 @@ Vector direct_light(const Scene &scene, const Material &material,
             Vector ref = reflect(light.dir, normal);
             Ray r(origin, ref);
 
-            color +=  cast_ray(scene, r, tree, depth + 1);
+            color += cast_ray(scene, r, tree, depth + 1);
         }
         else if (diff)
         {

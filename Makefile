@@ -13,7 +13,7 @@ all: $(BIN)
 main: ${OBJS}
 	$(CXX) $(CXXFLAGS) $(CXXLIBS) $(OBJS) -o $(BIN)
 
-check: CXXFLAGS = -g3 -O0 -fno-inline -fopenmp
+check: CXXFLAGS = -g3 -O0 -fno-inline -fsanitize=address -fopenmp
 check: $(BIN)
 
 .PHONY: clean check

@@ -375,6 +375,10 @@ int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
                 int r = vect[index][0] * 255.0;
                 int g = vect[index][1] * 255.0;
                 int b = vect[index++][2] * 255.0;
+
+                r = std::min(r, 255);
+                g = std::min(g, 255);
+                b = std::min(b, 255);
                 out << r << " " << g << " " << b << "  ";
             }
             out << '\n';

@@ -58,6 +58,58 @@ public:
             }
             if (right)
                 right.get()->print_infixe();
+
+            /*
+            for (auto it = beg; it < end; ++it)
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (box[0] >= it[0].vertices[i][0])
+                    {
+                        std::cout << box[0] << std::endl;
+                        std::cout << it[0].vertices[i][0] << std::endl;
+                        exit(20);
+                    }
+                    if (box[1] <= it[0].vertices[i][0])
+                    {
+                        std::cout << "min" << box[0] << std::endl;
+                        std::cout << "max:"<<  box[1] << std::endl;
+                        std::cout << it[0].vertices[i][0] << std::endl;
+                            
+                        std::cout << std::distance(beg, end) << std::endl;
+                        for (auto it2 = beg; it2 < end; ++it2)
+                        {
+                            for (int j = 0; j < 3; ++j)
+                            {
+                                std::cout << it2->vertices[j][0] << std::endl;
+                            }
+                        }
+                       exit(30);
+                    }
+                    if (box[2] >= it[0].vertices[i][1])
+                        exit(4);
+
+                    if (box[3] <= it[0].vertices[i][1])
+                        exit(5);
+
+                    if (box[4] >= it[0].vertices[i][2])
+                        exit(6);
+
+                    if (box[5] <= it[0].vertices[i][2])
+                    {
+                        std::cout << box[5] << std::endl;
+                        std::cout << it[0].vertices[i][2] << std::endl;
+                        exit(7);
+                    }
+                }
+            }*/
+
+            if (left)
+                left.get()->print_infixe();
+
+            if (right)
+                right.get()->print_infixe();
+
         }
     };
 
