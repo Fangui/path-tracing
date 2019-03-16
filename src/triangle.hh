@@ -23,8 +23,9 @@ struct Triangle
         normal[2] = n3;
 
         uv_pos[0] = p1;
-        uv_pos[0] = p2;
-        uv_pos[0] = p3;
+        uv_pos[1] = p2;
+        uv_pos[2] = p3;
+
         this->id = id;
 
         double x = 0.f;

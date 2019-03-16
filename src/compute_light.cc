@@ -75,7 +75,7 @@ Vector cast_ray(const Scene &scene,
         const auto material = scene.map.at(scene.mat_names[ray.tri.id]);
         const Vector inter = ray.o + ray.dir * dist;
         Vector normal = ray.tri.normal[0] * (1 - ray.u - ray.v) 
-          + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v; //FIXME
+          + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
         normal.norm_inplace();
 
         Vector direct_color = direct_light(scene, material, ray, 
@@ -225,7 +225,7 @@ Vector direct_light(const Scene &scene, const Material &material,
             spec_coef = 0;
         double spec = pow(spec_coef, material.ns);
 
-        if (diff)
+        if (true || diff)
         {
             auto kd_map = scene.map_kd.find(material.kd_name);
             if (kd_map != scene.map_kd.end())
@@ -233,9 +233,17 @@ Vector direct_light(const Scene &scene, const Material &material,
                 auto pos = ray.tri.uv_pos;
                 const auto &map = kd_map->second;
 
+                /*
                 const Vector &text = map.get_color(pos[0][0], pos[0][1]) * (1 - ray.u - ray.v) 
                                    + map.get_color(pos[1][0], pos[1][1]) * ray.u 
-                                   + map.get_color(pos[2][0], pos[2][1]) * ray.v;
+                                   + map.get_color(pos[2][0], pos[2][1]) * ray.v;*/
+//                const Vector &text = map.get_color(ray.u * pos[0][0] + ray.v * pos[1][0] + (1 - ray.u - ray.v) * pos[2][0],
+  //                      ray.u * pos[0][1] + ray.v * pos[1][1] + (1 - ray.u - ray.v) * pos[2][1]);
+                
+                const Vector &text = map.get_color(ray.u * pos[1][0] + ray.v * pos[2][0] + (1 - ray.u - ray.v) * pos[0][0],
+                        ray.u * pos[1][1] + ray.v * pos[2][1] + (1 - ray.u - ray.v) * pos[0][1]);
+
+              //  const Vector &text = map.get_color(ray.u, ray.v);
                 //const Vector &text = map.get_color(pos[0][0], pos[0][1]);
                 color += light.color *  text * diff;
             }

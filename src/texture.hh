@@ -30,21 +30,12 @@ class Texture
             return this->pixels_[x * this->height_ + y];
         }
 
-        Vector get_color(double u, double v) const
+        Vector get_color(double u, double v) const;
+
+
+        void set_color(int x, int y, Vector c)
         {
-            u = fmod(fabs(u), 1);
-            v = fmod(fabs(v), 1);
-
-            int x = u * width_;
-            int y = v * height_;
-
-            return this->pixels_[x * this->height_ + y];
-        }
-
-
-        Vector& set_color(int x, int y, Vector c)
-        {
-            return this->pixels_[x * this->height_ + y] = c;
+            this->pixels_[x * this->height_ + y] = c;
         }
 
         int width_;

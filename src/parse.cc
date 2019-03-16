@@ -348,6 +348,11 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
             }
             else
             {
+                /*
+                for (unsigned i = 0; i < 9; ++i)
+                {
+                    std::cout << idx[i] << std::endl;
+                }*/
                 Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
                            vt[idx[1]], vt[idx[4]], vt[idx[7]],
                            vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
