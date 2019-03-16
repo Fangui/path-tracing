@@ -194,8 +194,8 @@ void KdTree::KdNode::search(Ray &ray, double &dist) const
 }
 
 bool KdTree::KdNode::search_inter(const Ray &ray) const
- {
-    if (left == nullptr || right == nullptr || inside_box(ray))
+{
+    if (inside_box(ray))
     {
         for (auto it = beg; it < end; ++it)
         {

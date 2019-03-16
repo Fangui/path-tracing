@@ -229,9 +229,8 @@ Vector direct_light(const Scene &scene, const Material &material,
             if (spec < 0)
                 spec = 0;
         }
-        if (diff)
+        if (true || diff)
         {
-            
             auto kd_map = scene.map_kd.find(material.kd_name);
             if (kd_map != scene.map_kd.end())
             {

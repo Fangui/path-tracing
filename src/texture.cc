@@ -26,13 +26,17 @@ Uint32 pixel_pos(SDL_Surface *surface, int x, int y)
             return *(Uint32 *)p;
 
         default:
+            break;
+        }
+    return 0;
 }*/
+
 
 void *pixel_pos(SDL_Surface *image, int x, int y)
 {
     uint8_t *p = (uint8_t *) image->pixels
                         + (x * image->h
-                                                                                        + y) * image->format->BytesPerPixel;
+                        + y) * image->format->BytesPerPixel;
 
     return (void *) p;
 }
@@ -44,7 +48,8 @@ Vector get_pixel(SDL_Surface *image, int x, int y)
     uint8_t b = 0.;
 
     SDL_LockSurface(image);
-    uint32_t *pos = (uint32_t*)pixel_pos(image, x, y);
+    uint32_t *pos = (uint32_t *)pixel_pos(image, x, y);
+  //  Uint32 pos = pixel_pos(image, x, y);
 
     SDL_UnlockSurface(image); 
     SDL_GetRGB(*pos, image->format, &r, &g, &b);
@@ -59,6 +64,7 @@ Texture::Texture(const std::string &name)
     {
         throw std::runtime_error("cannot open image " + name);
     }
+    std::cout << "Load texture: " << name << std::endl;
 
     this->height_ = image->h;
     this->width_  = image->w;
@@ -87,7 +93,7 @@ Vector Texture::get_color(double u, double v) const
     int x = u * (width_ - 1);
     int y = (1 - v) * (height_ - 1);
     
-    return pixels_[x * height_ + y];
+    return pixels_[y * width_ + x];
 /*
 
     int m_Width = this->width_;
@@ -117,8 +123,6 @@ Vector Texture::get_color(double u, double v) const
 
 }
 
-
-
 /*
 #include <fstream>
 #include <iostream>
@@ -129,23 +133,37 @@ int write_ppm(const std::string &out_path, const Texture &t,
     unsigned index = 0;
     if (out.is_open())
     {
-            out << "P3\n";
-            out << width << " " << height << '\n';
-            out << 255 << '\n';
-    
-            for (double i = 0; i < 1; i += 1 / (double)width)
+        out << "P3\n";
+        out << width << " " << height << '\n';
+        out << 255 << '\n';
+
+        for (int i = 0; i < width; ++i)
+        {
+            for (int j = 0; j < height; ++j)
             {
-                        for (double j = 0; j < 1; j += 1 / (double)height)
-                        {
-                            Vector color = t.get_color(i, j);
-                            int r = color[0] * 255.0;
-                            int g = color[1] * 255.0;
-                            int b = color[2] * 255.0;
-                            out << r << " " << g << " " << b << "  ";
-                                    }
-                        out << '\n';
-                    }
+                Vector color = t.get_color(i, j);
+                int r = color[0] * 255.0;
+                int g = color[1] * 255.0;
+                int b = color[2] * 255.0;
+                out << r << " " << g << " " << b << "  ";
+            }
+            out << '\n';
         }
+
+        for (double i = 0; i < 1; i += 1 /double(width))
+        {
+            for (double j = 0; j < 1; j += 1 / double(height))
+            {
+                Vector color = t.get_color(i, j);
+                double r = color[0] * 255.0;
+                double g = color[1] * 255.0;
+                double b = color[2] * 255.0;
+                out << r << " " << g << " " << b << "  ";
+            }
+            out << '\n';
+        }
+
+    }
     else
     {
             std::cerr << "Error while write in " << out_path << '\n';

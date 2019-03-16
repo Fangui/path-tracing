@@ -230,6 +230,10 @@ void parse_materials(const std::string &s, Scene &scene)
                 }
                 else if (id == "ma")
                     continue;
+                else if (id == "Tr")
+                    continue;
+                else if (id == "Tf")
+                    continue;
                 else
                     break;
                 id.clear();
