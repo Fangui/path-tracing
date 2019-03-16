@@ -13,7 +13,7 @@ struct Light // directional
     , dir(dir)
     {}
 
-    ~Light() = default;
+    virtual ~Light() = default;
 
     virtual Vector compute_light(const Vector &inter,
                           const KdTree &tree,

@@ -196,6 +196,7 @@ void parse_materials(const std::string &s, Scene &scene)
         int illum = 0;
         Vector ka, ks, kd, ke, tf;
         std::string map_kd;
+        std::string map_ka;
 
         if (line.substr(0, 6) == "newmtl")
         {
@@ -227,6 +228,8 @@ void parse_materials(const std::string &s, Scene &scene)
                 {
                     if (line.substr(0,6) == "map_Kd")
                         strin >> trash >> map_kd;
+                    else if (line.substr(0, 6) == "map_Ka")
+                        strin >> trash >> map_ka;
                 }
                 else if (id == "ma")
                     continue;
@@ -241,15 +244,28 @@ void parse_materials(const std::string &s, Scene &scene)
                 if (id == "n")
                     break;
             }
-            Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf, map_kd);
+            Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf, map_kd, map_ka);
             //  std::cout << "newmtl " << name << std::endl;
             //  mat.dump();
             scene.map.emplace(std::make_pair(name, mat));
             if (!map_kd.empty())
             {
-                Texture t(map_kd);
-                scene.map_kd.emplace(std::make_pair(map_kd, t));
+                if (scene.map_text.find(map_kd) == scene.map_text.end())
+                {
+                    Texture t(map_kd);
+                    scene.map_text.emplace(std::make_pair(map_kd, t));
+                }
             }
+            if (!map_ka.empty())
+            {
+                if (scene.map_text.find(map_ka) == scene.map_text.end())
+                {
+                    Texture t(map_ka);
+                    scene.map_text.emplace(std::make_pair(map_ka, t));
+                }
+            }
+
+
         }
     }
 

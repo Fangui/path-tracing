@@ -12,6 +12,12 @@
 
 struct Scene
 {
+    ~Scene()
+    {
+        for (unsigned i = 0; i < lights.size(); ++i)
+            delete lights[i];
+    }
+
     int height;
     int width;
     Vector cam_pos;
@@ -26,5 +32,5 @@ struct Scene
     std::vector<Object> objects;
     std::vector<std::string> mat_names;
     std::unordered_map<std::string, Material> map;
-    std::unordered_map<std::string, Texture> map_kd;
+    std::unordered_map<std::string, Texture> map_text;
 };

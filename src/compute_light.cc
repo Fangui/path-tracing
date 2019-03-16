@@ -146,6 +146,17 @@ Vector indirect_light(const Scene &scene,
     return indirect_color;
 }
 
+Vector get_texture(const Ray &ray, const Texture &texture)
+{
+    auto pos = ray.tri.uv_pos;
+
+    double u = (1 - ray.u - ray.v) * pos[0][0] + ray.u 
+                                   * pos[1][0] + ray.v * pos[2][0];
+    double v = (1 - ray.u - ray.v) * pos[0][1] + ray.u 
+                                   * pos[1][1] + ray.v * pos[2][1];
+    return texture.get_color(u, v);
+}
+
 Vector direct_light(const Scene &scene, const Material &material,
                     const Ray &ray, const KdTree &tree, 
                     const Vector &inter, const Vector &normal,
@@ -229,18 +240,12 @@ Vector direct_light(const Scene &scene, const Material &material,
             if (spec < 0)
                 spec = 0;
         }
-        if (true || diff)
+        if (diff)
         {
-            auto kd_map = scene.map_kd.find(material.kd_name);
-            if (kd_map != scene.map_kd.end())
+            auto kd_map = scene.map_text.find(material.kd_name);
+            if (kd_map != scene.map_text.end())
             {
-                auto pos = ray.tri.uv_pos;
-                const auto &map = kd_map->second;
-
-                double u = (1 - ray.u - ray.v) * pos[0][0] + ray.u * pos[1][0] + ray.v * pos[2][0];
-                double v = (1 - ray.u - ray.v) * pos[0][1] + ray.u * pos[1][1] + ray.v * pos[2][1];
-                const Vector &text = map.get_color(u, v);
-
+                const Vector &text = get_texture(ray, kd_map->second);
                 color += light->color *  text * diff * rat;
             }
             else
@@ -251,7 +256,16 @@ Vector direct_light(const Scene &scene, const Material &material,
             color += (light->color * spec * material.ks);
     }
 
-    color += material.ka * scene.a_light;
+    auto ka_map = scene.map_text.find(material.ka_name);
+    if (ka_map != scene.map_text.end())
+    {
+        const Vector &text = get_texture(ray, ka_map->second);
+        color += text * scene.a_light;
+    }
+    else
+        color += material.ka * scene.a_light;
 
     return color;
 }
+
+
