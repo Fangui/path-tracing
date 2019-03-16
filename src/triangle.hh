@@ -60,7 +60,7 @@ struct Triangle
 
 struct Ray
 {
-    Ray(Vector &o, Vector &dir) : o(o), dir(dir)
+    Ray(const Vector &o, const Vector &dir) : o(o), dir(dir)
     {
         inv = Vector(1.f / dir[0], 1.f / dir[1], 1.f / dir[2]);
         sign[0] = inv[0] < 0;

@@ -66,7 +66,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth > 4) // max depth
+    if (depth > 1) // max depth
         return Vector(0.f, 0.f, 0.f);
 
     double dist = -1;
@@ -203,67 +203,56 @@ Vector direct_light(const Scene &scene, const Material &material,
 
     }
 
-    for (const auto &light : scene.lights)
+    double rat;
+    for (const auto *light : scene.lights)
     {
-        Vector L = light.dir * -1;
-
-        Vector o_shadow = inter + L * 0.001; // biais
-        Ray shadow_ray(o_shadow, L);
+        Vector L = light->compute_light(inter, tree, rat);
 
         double diff = 0.f;
-        if (!tree.search_inter(shadow_ray))
+        if (rat > 0)
         {
             diff = L.dot_product(normal);
             if (diff < 0)
                 diff = 0;
         }
-        Vector R = reflect(L, normal);
-        R.norm_inplace();
 
-        double spec_coef = ray.dir.dot_product(R);
-        if (spec_coef < 0)
-            spec_coef = 0;
-        double spec = pow(spec_coef, material.ns);
-
-        if (true || diff)
+        double spec = 0;
+        if (!(L[0] == 0 && L[1] == 0 && L[2] == 0))
         {
+            Vector R = reflect(L, normal);
+            R.norm_inplace();
+
+            double spec_coef = ray.dir.dot_product(R);
+            if (spec_coef < 0)
+                spec_coef = 0;
+            spec = pow(spec_coef, material.ns);
+            if (spec < 0)
+                spec = 0;
+        }
+        if (diff)
+        {
+            
             auto kd_map = scene.map_kd.find(material.kd_name);
             if (kd_map != scene.map_kd.end())
             {
                 auto pos = ray.tri.uv_pos;
                 const auto &map = kd_map->second;
 
-                /*
-                const Vector &text = map.get_color(pos[0][0], pos[0][1]) * (1 - ray.u - ray.v) 
-                                   + map.get_color(pos[1][0], pos[1][1]) * ray.u 
-                                   + map.get_color(pos[2][0], pos[2][1]) * ray.v;*/
-//                const Vector &text = map.get_color(ray.u * pos[0][0] + ray.v * pos[1][0] + (1 - ray.u - ray.v) * pos[2][0],
-  //                      ray.u * pos[0][1] + ray.v * pos[1][1] + (1 - ray.u - ray.v) * pos[2][1]);
-                
-                const Vector &text = map.get_color(ray.u * pos[1][0] + ray.v * pos[2][0] + (1 - ray.u - ray.v) * pos[0][0],
-                        ray.u * pos[1][1] + ray.v * pos[2][1] + (1 - ray.u - ray.v) * pos[0][1]);
+                double u = (1 - ray.u - ray.v) * pos[0][0] + ray.u * pos[1][0] + ray.v * pos[2][0];
+                double v = (1 - ray.u - ray.v) * pos[0][1] + ray.u * pos[1][1] + ray.v * pos[2][1];
+                const Vector &text = map.get_color(u, v);
 
-              //  const Vector &text = map.get_color(ray.u, ray.v);
-                //const Vector &text = map.get_color(pos[0][0], pos[0][1]);
-                color += light.color *  text * diff;
+                color += light->color *  text * diff * rat;
             }
             else
-                color += light.color * material.kd * diff;
+                color += light->color * material.kd * diff * rat;
         }
-        if (material.illum != 1)
-            color += (light.color * spec * material.ks);
+        
+        if (material.illum != 1 && spec)
+            color += (light->color * spec * material.ks);
     }
 
     color += material.ka * scene.a_light;
-
-    if (color[0] > 1)
-        color[0] = 1;
-
-    if (color[1] > 1)
-        color[1] = 1;
-
-    if (color[2] > 1)
-        color[2] = 1;
 
     return color;
 }

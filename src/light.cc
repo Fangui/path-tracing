@@ -6,3 +6,20 @@ std::ostream& operator <<(std::ostream& os, const Light &l)
     os << "Dir   :" << l.dir;
     return os;
 }
+
+
+Vector Light::compute_light(const Vector &inter, 
+                            const KdTree &tree,
+                            double &rat) const
+{
+    Vector l_dir = -dir;
+
+    Vector origin = inter + l_dir * 0.001; // bias
+    Ray ray(origin, l_dir);
+
+    if (tree.search_inter(ray))
+        rat = 0;
+
+    rat = 1;
+    return l_dir;
+}

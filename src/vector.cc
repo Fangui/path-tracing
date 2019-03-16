@@ -18,6 +18,12 @@ Vector Vector::operator-(const Vector &rhs) const
     return Vector(tab[0], tab[1], tab[2]) -= rhs;
 }
 
+Vector Vector::operator-() const
+{
+    return Vector(tab[0], tab[1], tab[2]) * -1;
+}
+
+
 Vector Vector::operator-=(const Vector &rhs)
 {
     tab = _mm256_sub_pd(tab, rhs.tab);

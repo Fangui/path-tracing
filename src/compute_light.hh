@@ -1,7 +1,7 @@
-#include "kdtree.hh"
 #include "scene.hh"
 #include "material.hh"
-#include "triangle.hh"
+#include "light.hh"
+#include "sphere_light.hh"
 
 Vector direct_light(const Scene &scene, const Material &mat,
                     const Ray &ray, const KdTree &tree,

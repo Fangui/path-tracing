@@ -1,15 +1,23 @@
 #pragma once
 
 #include <iostream>
+#include "kdtree.hh"
+#include "triangle.hh"
 #include "vector.hh"
 
 struct Light // directional
 {
-    Light(Vector &color,
-          Vector &dir)
+    Light(const Vector &color,
+          const Vector &dir)
     : color(color)
     , dir(dir)
     {}
+
+    ~Light() = default;
+
+    virtual Vector compute_light(const Vector &inter,
+                          const KdTree &tree,
+                          double &rat) const;
 
     Vector color;
     Vector dir;

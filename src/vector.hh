@@ -38,6 +38,7 @@ public:
     Vector operator/=(const Vector &rhs);
     Vector operator/(double lambda) const;
     Vector operator/=(double lambda);
+    Vector operator-() const;
 
     double operator[](unsigned idx) const { return tab[idx]; };
     double& operator[](unsigned idx) 
@@ -51,8 +52,6 @@ public:
         return this->coord.r;
     }
 
-    
-
     Vector cross_product(const Vector &rhs) const;
     Vector cross_product_inplace(const Vector &rhs);
     Vector norm(void) const;
@@ -60,7 +59,7 @@ public:
 
     double dot_product(const Vector &rhs) const;
 
-    double get_dist() { return sqrtf(tab[0] * tab[0] + tab[1] * tab[1] + tab[2] * tab[2]); };
+    double get_dist() { return sqrt(tab[0] * tab[0] + tab[1] * tab[1] + tab[2] * tab[2]); };
 
     void set(double x, double y, double z)
     {

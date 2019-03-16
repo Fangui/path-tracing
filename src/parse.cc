@@ -78,7 +78,12 @@ Scene parse_scene(const std::string& filename)
             else if (s == "directional")
             {
                 dir.norm_inplace();
-                scene.lights.push_back(Light(color, dir));
+                scene.lights.push_back(new Light(color, dir));
+            }
+            else if (s == "point")
+            {
+                int r = e["r"].get<int>();
+                scene.lights.push_back(new SphereLight(color, dir, r));
             }
             else
             {
@@ -152,7 +157,7 @@ Scene parse_scene(const std::string& filename)
         std::cout << scene.a_light << "\n\n";
         std::cout << "Directional_light" << '\n';
         for (auto e : scene.lights)
-            std::cout<< e << '\n';
+            std::cout<< *e << '\n';
         std::cout  << std::endl;
         std::cout << "Objects :" << std::endl;
         for (auto e : scene.objects)

@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     t1 = omp_get_wtime();
 
-#pragma omp parallel for schedule (dynamic)
+//#pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
         for (int j = -scene.height / 2; j < scene.height / 2; ++j)

@@ -4,7 +4,7 @@ CXXFLAGS += -Wall -Wextra -std=c++17 -pedantic -O3 -fopenmp -march=native # for 
 CXXLIBS += -lSDL2 -lSDL2_image
 
 SRC = main.cc vector.cc kdtree.cc triangle.cc material.cc parse.cc light.cc \
-	compute_light.cc matrix.cc texture.cc
+	compute_light.cc matrix.cc texture.cc sphere_light.cc
 OBJS = ${SRC:.cc=.o}
 BIN = main
 
@@ -26,3 +26,9 @@ test: $(BIN)
 	./$(BIN) ./examples/scenes/iron.json && feh out.ppm
 	./$(BIN) ./examples/scenes/car.json && feh out.ppm
 	./$(BIN) ./examples/scenes/eye.json && feh out.ppm
+
+tar:
+	tar -cvjf example.tar.bz2 examples
+untar:
+	tar -xvf examples.tar.bz2
+	rm -f examples.tar.bz2
