@@ -15,11 +15,11 @@ Vector reflect(const Vector& incident,
 
 Vector refract(const Vector& incident,
                 const Vector& normal,
+                double etai,
                 double ior)
 {
     double cosi = incident.dot_product(normal);
     cosi = clamp(-1, 1, cosi);
-    double etai = 1;
 
     Vector n = normal;
     if (cosi < 0)
@@ -37,26 +37,27 @@ Vector refract(const Vector& incident,
 
 double fresnel(const Vector &incident, 
                const Vector &normal, 
-               double ior)
+               double etat)
 {
-    double cosi = incident.dot_product(normal);
-    cosi = clamp(-1, 1, cosi);
+    double cos_i = incident.dot_product(normal);
+    cos_i = clamp(-1, 1, cos_i);
 
     double etai = 1;
 
-    if (cosi > 0)
-        std::swap(etai, ior);
+    if (cos_i > 0)
+        std::swap(etai, etat);
 
-    double sint = etai / ior * sqrt(std::max(0., 1 - cosi * cosi));
+    double sin_t = etai / etat * sqrt(std::max(0., 1 - cos_i * cos_i));
     // Total internal reflection
-    if (sint >= 1)
+    if (sin_t >= 1)
         return 1;
-    else {
-        double cost = sqrt(std::max(0., 1 - sint * sint));
-        cosi = std::abs(cosi);
-        double Rs = ((ior * cosi) - (etai * cost)) / ((ior * cosi) + (etai * cost));
-        double Rp = ((etai * cosi) - (ior * cost)) / ((etai * cosi) + (ior * cost));
-        return (Rs * Rs + Rp * Rp) / 2;
+    else 
+    {
+        double cos_t = sqrt(std::max(0., 1 - sin_t * sin_t));
+        cos_i = std::abs(cos_i);
+        double rs = ((etat * cos_i) - (etai * cos_t)) / ((etat * cos_i) + (etai * cos_t));
+        double rp = ((etai * cos_i) - (etat * cos_t)) / ((etai * cos_i) + (etat * cos_t));
+        return (rs * rs + rp * rp) / 2;
     }
     // As a consequence of the conservation of energy, transmittance is given by:
     // kt = 1 - kr;
@@ -66,7 +67,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth > 1) // max depth
+    if (depth > 4) // max depth
         return Vector(0.f, 0.f, 0.f);
 
     double dist = -1;
@@ -74,7 +75,7 @@ Vector cast_ray(const Scene &scene,
     {
         const auto material = scene.map.at(scene.mat_names[ray.tri.id]);
         const Vector inter = ray.o + ray.dir * dist;
-        Vector normal = ray.tri.normal[0] * (1 - ray.u - ray.v) 
+        Vector normal = ray.tri.normal[0] * (1 - ray.u - ray.v)
           + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
         normal.norm_inplace();
 
@@ -174,16 +175,36 @@ Vector direct_light(const Scene &scene, const Material &material,
 
         Vector origin = inter + normal * bias;
         Ray r(origin, refr);
-        r.ni = material.ni;
 
         color += cast_ray(scene, r, tree, depth + 1) * 0.8;
-        return color;
     }
     else if (material.illum == 5)
     {
-        Vector refl = reflect(ray.dir, normal).norm_inplace();
-        Vector refr = refract(ray.dir, normal, material.ni).norm_inplace();
+        double kr = fresnel(ray.dir, normal, material.ni);
+        bool outside = ray.dir.dot_product(normal) < 0;
+        Vector bias = 0.001 * normal;
 
+        Vector refraction_color;
+        if (kr < 1)
+        {
+            Vector refraction_direction = refract(ray.dir, normal, material.ni, material.ni).norm_inplace();
+            Vector refract_ray_orig = outside ? inter - bias : inter + bias;
+            Ray ray_refr(refract_ray_orig, refraction_direction);
+            ray_refr.ni = material.ni;
+
+            return refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
+        }
+
+        Vector reflect_direction = reflect(ray.dir, normal).norm_inplace();
+        Vector reflection_ray_orig = outside ? inter + bias : inter - bias;
+        Ray ray_refr(reflection_ray_orig, reflect_direction);
+
+        Vector reflection_color = cast_ray(scene, ray_refr, tree, depth + 1);
+
+        return reflection_color * kr + refraction_color * (1 - kr) * 0.9;
+       // Vector refl = reflect(ray.dir, normal).norm_inplace();
+        //Vector refr = refract(ray.dir, normal, ray.ni, material.ni).norm_inplace();*/
+/*
         double bias = 0.001;
         if (refr.dot_product(normal) < 0)
             bias = -bias;
@@ -195,12 +216,13 @@ Vector direct_light(const Scene &scene, const Material &material,
         r.ni = material.ni;
         r_refr.ni = material.ni;
 
-        Vector refl_color = cast_ray(scene, r, tree, depth + 1);
+     //   Vector refl_color = cast_ray(scene, r, tree, depth + 1);
         Vector refr_color = cast_ray(scene, r_refr, tree, depth + 1);
-        double kr = fresnel(ray.dir, normal, material.ni);
-        return refl_color * kr + refr_color * (1 - kr); /*
-
-
+//        double kr = fresnel(ray.dir, normal, material.ni);
+//        return refl_color * kr + refr_color * (1 - kr); 
+        return refr_color * 0.95;
+*/
+/*
          double m = ray.ni / material.ni;
          double c = (-1 * normal).dot_product(ray.dir);
 
@@ -240,7 +262,7 @@ Vector direct_light(const Scene &scene, const Material &material,
             if (spec < 0)
                 spec = 0;
         }
-        if (diff)
+        if (material.illum < 4 && diff)
         {
             auto kd_map = scene.map_text.find(material.kd_name);
             if (kd_map != scene.map_text.end())
@@ -251,7 +273,6 @@ Vector direct_light(const Scene &scene, const Material &material,
             else
                 color += light->color * material.kd * diff * rat;
         }
-        
         if (material.illum != 1 && spec)
             color += (light->color * spec * material.ks);
     }
