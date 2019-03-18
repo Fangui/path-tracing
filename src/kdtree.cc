@@ -164,7 +164,7 @@ void KdTree::KdNode::search(Ray &ray, double &dist) const
             }
         }
 
-        if (axis == 2) // Good opti but may be dangerous
+        if (false && axis == 2) // Good opti but may be dangerous
         {
             double prev_dist = dist;
             if (ray.o[2] < beg->vertices[2][2])

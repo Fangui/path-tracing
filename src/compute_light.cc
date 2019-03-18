@@ -3,9 +3,9 @@
 
 inline
 double clamp(double lo, double hi, double v)
-{ 
-    return std::max(lo, std::min(hi, v)); 
-} 
+{
+    return std::max(lo, std::min(hi, v));
+}
 
 Vector reflect(const Vector& incident,
                 const Vector& normal)
@@ -35,8 +35,8 @@ Vector refract(const Vector& incident,
     return k < 0 ? Vector(0, 0, 0) : eta * incident + (eta * cosi -sqrt(k)) * n;
 }
 
-double fresnel(const Vector &incident, 
-               const Vector &normal, 
+double fresnel(const Vector &incident,
+               const Vector &normal,
                double etat)
 {
     double cos_i = incident.dot_product(normal);
@@ -51,7 +51,7 @@ double fresnel(const Vector &incident,
     // Total internal reflection
     if (sin_t >= 1)
         return 1;
-    else 
+    else
     {
         double cos_t = sqrt(std::max(0., 1 - sin_t * sin_t));
         cos_i = std::abs(cos_i);
@@ -63,11 +63,11 @@ double fresnel(const Vector &incident,
     // kt = 1 - kr;
 }
 
-Vector cast_ray(const Scene &scene, 
+Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth > 4) // max depth
+    if (depth > 1) // max depth
         return Vector(0.f, 0.f, 0.f);
 
     double dist = -1;
@@ -79,14 +79,14 @@ Vector cast_ray(const Scene &scene,
           + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
         normal.norm_inplace();
 
-        Vector direct_color = direct_light(scene, material, ray, 
+        Vector direct_color = direct_light(scene, material, ray,
                                            tree, inter, normal, depth);
 
-        return direct_color;
         Vector indirect_color = indirect_light(scene, tree,
                                                inter, normal, depth);
 
-        Vector res = (direct_color / M_PI  + 2 * indirect_color)  * 0.2; //FIXME albedo
+        Vector res = (direct_color  + 2 * indirect_color );
+      //  Vector res = direct_color + indirect_color * M_PI / 2;
         return res;
 
     }
@@ -101,7 +101,7 @@ void create_coordinate_system(const Vector &N, Vector &Nt, Vector &Nb)
     else
         Nt = Vector(0, -N[2], N[1]) * (1 / sqrtf(N[1] * N[1] + N[2] * N[2]));
     Nb = N.cross_product(Nt);
-} 
+}
 
 Vector uniform_sample_hemisphere(double r1, double r2)
 {
@@ -110,23 +110,24 @@ Vector uniform_sample_hemisphere(double r1, double r2)
     double x = sinTheta * cosf(phi);
     double z = sinTheta * sinf(phi);
     return Vector(x, r1, z);
-  //  return Vector(x, z, r1); 
+  //  return Vector(x, z, r1);
 }
 
-#include <random> 
+#include <random>
 std::default_random_engine generator;
-std::uniform_real_distribution<double> distribution(0, 1); 
+std::uniform_real_distribution<double> distribution(0, 1);
 
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
                       const Vector &normal, unsigned char depth)
 {
-    const unsigned nb_ray = 4;
+    const unsigned nb_ray = 32;
     Vector nt;
     Vector nb;
     Vector indirect_color;
     create_coordinate_system(normal, nt, nb);
-    constexpr double inv_pdf = 2 * M_PI;
+    //constexpr double inv_pdf = 2 * M_PI;
+    //const double pdf = 1.0 / (2 * M_PI);
 
     for (unsigned i = 0; i  < nb_ray; ++i)
     {
@@ -140,9 +141,9 @@ Vector indirect_light(const Scene &scene,
 
         Vector origin = inter + sample_world * 0.001; // bias
         Ray ray(origin, sample_world);
-        indirect_color += cast_ray(scene, ray, tree, depth + 1) * r1 * inv_pdf;
+        indirect_color += cast_ray(scene, ray, tree, depth + 1) * (r1 * 0.2); // * inv_pdf;
     }
-    indirect_color /= (double)nb_ray;
+    indirect_color /= (double)(nb_ray);
 
     return indirect_color;
 }
@@ -151,15 +152,15 @@ Vector get_texture(const Ray &ray, const Texture &texture)
 {
     auto pos = ray.tri.uv_pos;
 
-    double u = (1 - ray.u - ray.v) * pos[0][0] + ray.u 
+    double u = (1 - ray.u - ray.v) * pos[0][0] + ray.u
                                    * pos[1][0] + ray.v * pos[2][0];
-    double v = (1 - ray.u - ray.v) * pos[0][1] + ray.u 
+    double v = (1 - ray.u - ray.v) * pos[0][1] + ray.u
                                    * pos[1][1] + ray.v * pos[2][1];
     return texture.get_color(u, v);
 }
 
 Vector direct_light(const Scene &scene, const Material &material,
-                    const Ray &ray, const KdTree &tree, 
+                    const Ray &ray, const KdTree &tree,
                     const Vector &inter, const Vector &normal,
                     int depth)
 {
@@ -177,8 +178,9 @@ Vector direct_light(const Scene &scene, const Material &material,
         Ray r(origin, refr);
 
         color += cast_ray(scene, r, tree, depth + 1) * 0.8;
+        return color;
     }
-    else if (material.illum == 5)
+    else if (false && material.illum == 5)
     {
         double kr = fresnel(ray.dir, normal, material.ni);
         bool outside = ray.dir.dot_product(normal) < 0;
@@ -219,7 +221,7 @@ Vector direct_light(const Scene &scene, const Material &material,
      //   Vector refl_color = cast_ray(scene, r, tree, depth + 1);
         Vector refr_color = cast_ray(scene, r_refr, tree, depth + 1);
 //        double kr = fresnel(ray.dir, normal, material.ni);
-//        return refl_color * kr + refr_color * (1 - kr); 
+//        return refl_color * kr + refr_color * (1 - kr);
         return refr_color * 0.95;
 */
 /*

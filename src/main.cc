@@ -83,8 +83,9 @@ int main(int argc, char *argv[])
     {
         for (int j = 0; j < scene.height; j += 2)
         {
-            Vector c = (vect[i * scene.width + j] + vect[i * scene.width + j + 1] + 
-                        vect[(i + 1) * scene.height + j] 
+            Vector c = (vect[i * scene.width + j]
+                      + vect[i * scene.width + j + 1]
+                      + vect[(i + 1) * scene.height + j]
                       + vect[(i + 1) * scene.height + j + 1]) / 4;
 
             out.push_back(c);
