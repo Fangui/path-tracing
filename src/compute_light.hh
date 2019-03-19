@@ -9,7 +9,9 @@ Vector direct_light(const Scene &scene, const Material &mat,
 
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
-                      const Vector &normal, unsigned char depth);
+                      const Vector &normal, const Material &material,
+                      const Ray &ray,
+                      unsigned char depth);
 
 
 Vector cast_ray(const Scene &scene, 

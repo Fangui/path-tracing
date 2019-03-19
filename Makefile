@@ -28,7 +28,7 @@ test: $(BIN)
 	./$(BIN) ./examples/scenes/eye.json && feh out.ppm
 
 tar:
-	tar -cvjf example.tar.bz2 examples Textures
+	tar -cvjf examples.tar.bz2 examples Textures
 untar:
 	tar -xvf examples.tar.bz2
 	rm -f examples.tar.bz2

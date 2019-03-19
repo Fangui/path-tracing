@@ -79,7 +79,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth > 1) // max depth
+    if (depth >= 2) // max depth
     {
         for (const auto *light : scene.lights) // send ray in every light
         {
@@ -103,19 +103,13 @@ Vector cast_ray(const Scene &scene,
                                            tree, inter, normal, depth);
         */
         Vector indirect_color = indirect_light(scene, tree,
-                                               inter, normal, depth);
+                                               inter, normal, material, ray,
+                                               depth);
 
       //  Vector res = (direct_color  + 2 * indirect_color );
       //  Vector res = direct_color + indirect_color * M_PI / 2;
-        
-        auto kd_map = scene.map_text.find(material.kd_name);
-        if (kd_map == scene.map_text.end()) // case not texture 
-            return indirect_color * 2 * material.kd;
-        else
-        {
-            const Vector &text = get_texture(ray, kd_map->second); // case texture 
-            return indirect_color * 2 * text;
-        }
+        return indirect_color;
+
     }
 
     for (const auto *light : scene.lights)
@@ -146,15 +140,65 @@ Vector uniform_sample_hemisphere(double r1, double r2)
   //  return Vector(x, z, r1);
 }
 
+float chiGGX(float v)
+{
+    return v > 0 ? 1 : 0;
+}
+
+double GGX_Distribution(const Vector &n, const Vector &h, double alpha)
+{
+    double NoH = n.dot_product(h);
+    double alpha2 = alpha * alpha;
+    double NoH2 = NoH * NoH;
+    //double den = NoH2 * alpha2 + (1 - NoH2);
+    double den = NoH2 * (alpha2 - 1) + 1; // http://graphicrants.blogspot.0om/2013/08/specular-brdf-reference.html
+    return (chiGGX(NoH) * alpha2) / ( M_PI * den * den );
+}
+
+// https://computergraphics.stackexchange.com/questions/4394/path-tracing-the-cook-torrance-brdf
+double g_cook_torrance(const Vector &normal, const Vector &view, const Vector &h,
+                       const Vector &sample)
+{
+    double nh_2 = 2 * normal.dot_product(h);
+    double nw = normal.dot_product(view);
+    double oh = view.dot_product(h);
+
+    double mid = nh_2 * nw / oh;
+    double right = nh_2 * sample.dot_product(normal) / oh;
+
+    return std::min(1.0, std::min(mid, right)); 
+}
+
+double schlick(double n1, double n2, double cos_i)
+{
+    double ro = (n1 - n2) / (n1 + n2);
+    ro *= ro;
+
+    return ro + (1 - ro) * pow((1 - cos_i), 5);
+}
+
 #include <random>
 std::default_random_engine generator;
 std::uniform_real_distribution<double> distribution(0, 1);
 
+double beckman(const Vector &normal, const Vector &h, double m)
+{
+    double nh = normal.dot_product(h);
+    double left = 1.0 / (M_PI * (m * m) * (pow(nh, 4)));
+
+    double e = exp((pow(nh, 2) - 1) / (m * m * nh * nh));
+
+    return left * e;
+}
+
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
-                      const Vector &normal, unsigned char depth)
+                      const Vector &normal, 
+                      const Material &material,
+                      const Ray &ray,
+                      unsigned char depth)
 {
-    const unsigned nb_ray = 24;
+    const unsigned nb_ray = 32;
     Vector nt;
     Vector nb;
     Vector indirect_color;
@@ -162,10 +206,15 @@ Vector indirect_light(const Scene &scene,
     //constexpr double inv_pdf = 2 * M_PI;
     //const double pdf = 1.0 / (2 * M_PI);
 
+    const Vector vo = inter - scene.cam_pos;
+
+    Vector diffuse;
+    Vector spec;
     for (unsigned i = 0; i  < nb_ray; ++i)
     {
         double r1 = distribution(generator);
         double r2 = distribution(generator);
+
         Vector sample = uniform_sample_hemisphere(r1, r2);
         Vector sample_world(sample[0] * nb[0] + sample[1] * normal[0] + sample[2] * nt[0],
                             sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
@@ -174,8 +223,30 @@ Vector indirect_light(const Scene &scene,
 
         Vector origin = inter + sample_world * 0.001; // bias
         Ray ray(origin, sample_world);
-        indirect_color += cast_ray(scene, ray, tree, depth + 1) * r1; // * inv_pdf;
+       
+        Vector li = cast_ray(scene, ray, tree, depth + 1);
+        diffuse += li * r1;
+
+        Vector h = (vo + sample_world) / ((vo + sample_world).get_dist());
+        double d = beckman(normal, h, 0.4); // roughness 0.2
+        //double d = GGX_Distribution(normal, h, 0.2); // roughness 0.2
+        double g = g_cook_torrance(normal, vo, h, sample_world);
+        double f = schlick(1, 1, sample_world.dot_product(h));
+
+        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
     }
+
+    auto kd_map = scene.map_text.find(material.kd_name);
+    if (kd_map == scene.map_text.end()) // case not texture 
+        indirect_color = 2 * diffuse * material.kd; // lambert
+    else
+    {
+        const Vector &text = get_texture(ray, kd_map->second); // case texture 
+        indirect_color = 2 * diffuse * text;
+    }
+
+    spec *= material.ks;
+    indirect_color += spec;
     indirect_color /= (double)(nb_ray);
 
     return indirect_color;
