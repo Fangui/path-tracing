@@ -10,7 +10,7 @@ double clamp(double lo, double hi, double v)
 Vector reflect(const Vector& incident,
                 const Vector& normal)
 {
-    return incident - (normal * (2.0 * normal.dot_product(incident)));
+    return incident - 2.0 * normal.dot_product(incident) * normal;
 }
 
 Vector get_texture(const Ray &ray, const Texture &texture)
@@ -79,7 +79,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth >= 2) // max depth
+    if (depth >= 5) // max depth
     {
         for (const auto *light : scene.lights) // send ray in every light
         {
@@ -102,7 +102,58 @@ Vector cast_ray(const Scene &scene,
         Vector direct_color = direct_light(scene, material, ray,
                                            tree, inter, normal, depth);
         */
-        Vector indirect_color = indirect_light(scene, tree,
+        Vector indirect_color;
+
+        if (material.illum == 4) //transparence
+        {
+            Vector refr = reflect(ray.dir, normal);
+            double bias = 0.001;
+
+            Vector origin = inter + refr * bias;
+            Ray r(origin, refr);
+
+            indirect_color = cast_ray(scene, r, tree, depth + 1) * 0.8; //Fixme
+        }
+        else if (material.illum == 5)
+        {
+            double kr = fresnel(ray.dir, normal, material.ni);
+            bool outside = ray.dir.dot_product(normal) < 0;
+            Vector bias = 0.001 * normal;
+
+            Vector refraction_color;
+            if (kr < 1)
+            {
+                Vector refraction_direction = refract(ray.dir, normal, material.ni, material.ni).norm_inplace();
+                Vector refract_ray_orig = outside ? inter - bias : inter + bias;
+                Ray ray_refr(refract_ray_orig, refraction_direction);
+                ray_refr.ni = material.ni;
+
+                return refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
+            }
+
+            Vector reflect_direction = reflect(ray.dir, normal).norm_inplace();
+            Vector reflection_ray_orig = outside ? inter + bias : inter - bias;
+            Ray ray_refr(reflection_ray_orig, reflect_direction);
+
+            Vector reflection_color = cast_ray(scene, ray_refr, tree, depth + 1);
+            return reflection_color * kr + refraction_color * (1 - kr) * 0.9;
+
+
+                /*
+               Ray reflRay(x, r.d-n*2*n.dot(r.d));     // Ideal dielectric REFRACTION 
+               bool into = n.dot(nl)>0;                // Ray from outside going in? 
+            double nc=1, nt=1.5, nnt=into?nc/nt:nt/nc, ddn=r.d.dot(nl), cos2t; 
+            if ((cos2t=1-nnt*nnt*(1-ddn*ddn))<0)    // Total internal reflection 
+                return obj.e + f.mult(radiance(reflRay,depth,Xi)); 
+            Vec tdir = (r.d*nnt - n*((into?1:-1)*(ddn*nnt+sqrt(cos2t)))).norm(); 
+            double a=nt-nc, b=nt+nc, R0=a*a/(b*b), c = 1-(into?-ddn:tdir.dot(n)); 
+            double Re=R0+(1-R0)*c*c*c*c*c,Tr=1-Re,P=.25+.5*Re,RP=Re/P,TP=Tr/(1-P); 
+            return obj.e + f.mult(depth>2 ? (erand48(Xi)<P ?   // Russian roulette 
+                        radiance(reflRay,depth,Xi)*RP:radiance(Ray(x,tdir),depth,Xi)*TP) : 
+                    radiance(reflRay,depth,Xi)*Re+radiance(Ray(x,tdir),depth,Xi)*Tr); */
+        }
+        else
+            indirect_color = indirect_light(scene, tree,
                                                inter, normal, material, ray,
                                                depth);
 
@@ -198,7 +249,7 @@ Vector indirect_light(const Scene &scene,
                       const Ray &ray,
                       unsigned char depth)
 {
-    const unsigned nb_ray = 32;
+    const unsigned nb_ray = 20 / (depth + 1);
     Vector nt;
     Vector nb;
     Vector indirect_color;
@@ -267,7 +318,7 @@ Vector direct_light(const Scene &scene, const Material &material,
         Vector refr = reflect(ray.dir, normal);
         double bias = 0.001;
 
-        Vector origin = inter + normal * bias;
+        Vector origin = inter + refr * bias;
         Ray r(origin, refr);
 
         color += cast_ray(scene, r, tree, depth + 1) * 0.8;
