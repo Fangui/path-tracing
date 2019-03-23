@@ -11,7 +11,7 @@ BIN = main
 all: $(BIN)
 
 main: ${OBJS}
-	$(CXX) $(CXXFLAGS) $(CXXLIBS) $(OBJS) -o $(BIN)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(CXXLIBS) -o $(BIN)
 
 check: CXXFLAGS += -g3 -O0 -fno-inline -fsanitize=address
 check: $(BIN)

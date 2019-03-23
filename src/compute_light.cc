@@ -79,7 +79,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth >= 5) // max depth
+    if (depth >= 2) // max depth
     {
         for (const auto *light : scene.lights) // send ray in every light
         {
@@ -140,16 +140,16 @@ Vector cast_ray(const Scene &scene,
 
 
                 /*
-               Ray reflRay(x, r.d-n*2*n.dot(r.d));     // Ideal dielectric REFRACTION 
-               bool into = n.dot(nl)>0;                // Ray from outside going in? 
-            double nc=1, nt=1.5, nnt=into?nc/nt:nt/nc, ddn=r.d.dot(nl), cos2t; 
-            if ((cos2t=1-nnt*nnt*(1-ddn*ddn))<0)    // Total internal reflection 
-                return obj.e + f.mult(radiance(reflRay,depth,Xi)); 
-            Vec tdir = (r.d*nnt - n*((into?1:-1)*(ddn*nnt+sqrt(cos2t)))).norm(); 
-            double a=nt-nc, b=nt+nc, R0=a*a/(b*b), c = 1-(into?-ddn:tdir.dot(n)); 
-            double Re=R0+(1-R0)*c*c*c*c*c,Tr=1-Re,P=.25+.5*Re,RP=Re/P,TP=Tr/(1-P); 
-            return obj.e + f.mult(depth>2 ? (erand48(Xi)<P ?   // Russian roulette 
-                        radiance(reflRay,depth,Xi)*RP:radiance(Ray(x,tdir),depth,Xi)*TP) : 
+               Ray reflRay(x, r.d-n*2*n.dot(r.d));     // Ideal dielectric REFRACTION
+               bool into = n.dot(nl)>0;                // Ray from outside going in?
+            double nc=1, nt=1.5, nnt=into?nc/nt:nt/nc, ddn=r.d.dot(nl), cos2t;
+            if ((cos2t=1-nnt*nnt*(1-ddn*ddn))<0)    // Total internal reflection
+                return obj.e + f.mult(radiance(reflRay,depth,Xi));
+            Vec tdir = (r.d*nnt - n*((into?1:-1)*(ddn*nnt+sqrt(cos2t)))).norm();
+            double a=nt-nc, b=nt+nc, R0=a*a/(b*b), c = 1-(into?-ddn:tdir.dot(n));
+            double Re=R0+(1-R0)*c*c*c*c*c,Tr=1-Re,P=.25+.5*Re,RP=Re/P,TP=Tr/(1-P);
+            return obj.e + f.mult(depth>2 ? (erand48(Xi)<P ?   // Russian roulette
+                        radiance(reflRay,depth,Xi)*RP:radiance(Ray(x,tdir),depth,Xi)*TP) :
                     radiance(reflRay,depth,Xi)*Re+radiance(Ray(x,tdir),depth,Xi)*Tr); */
         }
         else
@@ -217,7 +217,7 @@ double g_cook_torrance(const Vector &normal, const Vector &view, const Vector &h
     double mid = nh_2 * nw / oh;
     double right = nh_2 * sample.dot_product(normal) / oh;
 
-    return std::min(1.0, std::min(mid, right)); 
+    return std::min(1.0, std::min(mid, right));
 }
 
 double schlick(double n1, double n2, double cos_i)
@@ -244,12 +244,12 @@ double beckman(const Vector &normal, const Vector &h, double m)
 
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
-                      const Vector &normal, 
+                      const Vector &normal,
                       const Material &material,
                       const Ray &ray,
                       unsigned char depth)
 {
-    const unsigned nb_ray = 20 / (depth + 1);
+    const unsigned nb_ray = 8 / (depth + 1);
     Vector nt;
     Vector nb;
     Vector indirect_color;
@@ -274,13 +274,13 @@ Vector indirect_light(const Scene &scene,
 
         Vector origin = inter + sample_world * 0.001; // bias
         Ray ray(origin, sample_world);
-       
+
         Vector li = cast_ray(scene, ray, tree, depth + 1);
         diffuse += li * r1;
 
         Vector h = (vo + sample_world) / ((vo + sample_world).get_dist());
-        double d = beckman(normal, h, 0.4); // roughness 0.2
-        //double d = GGX_Distribution(normal, h, 0.2); // roughness 0.2
+        double d = beckman(normal, h, 0.2); // roughness 0.2
+       // double d = GGX_Distribution(normal, h, 0.2); // roughness 0.2
         double g = g_cook_torrance(normal, vo, h, sample_world);
         double f = schlick(1, 1, sample_world.dot_product(h));
 
@@ -288,11 +288,11 @@ Vector indirect_light(const Scene &scene,
     }
 
     auto kd_map = scene.map_text.find(material.kd_name);
-    if (kd_map == scene.map_text.end()) // case not texture 
+    if (kd_map == scene.map_text.end()) // case not texture
         indirect_color = 2 * diffuse * material.kd; // lambert
     else
     {
-        const Vector &text = get_texture(ray, kd_map->second); // case texture 
+        const Vector &text = get_texture(ray, kd_map->second); // case texture
         indirect_color = 2 * diffuse * text;
     }
 
