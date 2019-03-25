@@ -18,6 +18,8 @@ struct Scene
             delete lights[i];
     }
 
+    int nb_ray = 16;
+    double bias = 0.001;
     int height;
     int width;
     Vector cam_pos;

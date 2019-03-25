@@ -18,13 +18,16 @@ int main(int argc, char *argv[])
         path_scene = argv[1];
     else
     {
-        std::cerr << "Usage: ./main <scene>\n";
+        std::cerr << "Usage: ./main <scene> <nb_ray>\n";
         return 1;
     }
 
+    
     double t1 = omp_get_wtime();
 
     Scene scene = parse_scene(path_scene);
+    if (argc > 2)
+        scene.nb_ray = atoi(argv[2]);
 
     Vector u_n = scene.cam_u.norm_inplace();
     Vector v = scene.cam_v.norm_inplace();
@@ -76,9 +79,9 @@ int main(int argc, char *argv[])
     t2 = omp_get_wtime();
     std::cout << "Time raytracing: " << t2 - t1 << "s\n";
 
-    /*
     std::vector<Vector> out;
 
+    /*
     for (int i = 0; i < scene.width; i += 2)
     {
         for (int j = 0; j < scene.height; j += 2)
@@ -90,9 +93,7 @@ int main(int argc, char *argv[])
 
             out.push_back(c);
         }
-    }*/
-
-    //return write_ppm("out.ppm", out, scene.width / 2, scene.height / 2);
+    }
+    return write_ppm("out.ppm", out, scene.width / 2, scene.height / 2);*/
     return write_ppm("out.ppm", vect, scene.width, scene.height);
-
 }

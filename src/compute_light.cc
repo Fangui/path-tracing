@@ -1,8 +1,10 @@
 #include "compute_light.hh"
+#include <random>
 
+std::default_random_engine generator;
+std::uniform_real_distribution<double> distribution(0, 1);
 
-inline
-double clamp(double lo, double hi, double v)
+inline double clamp(double lo, double hi, double v)
 {
     return std::max(lo, std::min(hi, v));
 }
@@ -228,18 +230,56 @@ double schlick(double n1, double n2, double cos_i)
     return ro + (1 - ro) * pow((1 - cos_i), 5);
 }
 
-#include <random>
-std::default_random_engine generator;
-std::uniform_real_distribution<double> distribution(0, 1);
+double schlick_fresnel(double n1, double n2, const Vector &normal,
+        const Vector &incident)
+{
+    double r0 = (n1-n2) / (n1+n2);
+    r0 *= r0;
+    double cosX = -normal.dot_product(incident);
+    if (n1 > n2)
+    {
+        double n = n1/n2;
+        double sinT2 = n*n*(1.0-cosX*cosX);
+        // Total internal reflection
+        if (sinT2 > 1.0)
+            return 1.0;
+        cosX = sqrt(1.0-sinT2);
+    }
+    double x = 1.0-cosX;
+    double ret = r0+(1.0-r0)*x*x*x*x*x;
+
+    double kr = 0.8;
+    // adjust reflect multiplier for object reflectivity
+    ret = (kr + (1.0- kr) * ret);
+    return ret;
+}
 
 double beckman(const Vector &normal, const Vector &h, double m)
 {
     double nh = normal.dot_product(h);
     double left = 1.0 / (M_PI * (m * m) * (pow(nh, 4)));
 
-    double e = exp((pow(nh, 2) - 1) / (m * m * nh * nh));
+    double e = exp((pow(nh, 2) - 1) / (m * m * nh * nh)); // tan = (nh ** 2 - 1) / nh ** 2
 
     return left * e;
+}
+
+double fresnel_transmision(const Vector &incident, const Vector &m)
+{
+    double nt = 1.5 * 1.5;
+    double ni = 1.0 * 1.0;
+
+    double c = incident.dot_product(m);
+    double g = sqrt(nt / ni - 1 + c * c);
+
+    double left = ((g - c) * (g - c)) / ((g + c) * (g + c));
+    left /= 2;
+
+    double right = pow((c * (g + c) - 1), 2);
+    right /= pow(c * (g - c) + 1, 2);
+    right += 1;
+
+    return left * right;
 }
 
 Vector indirect_light(const Scene &scene,
@@ -249,7 +289,7 @@ Vector indirect_light(const Scene &scene,
                       const Ray &ray,
                       unsigned char depth)
 {
-    const unsigned nb_ray = 8 / (depth + 1);
+    const unsigned nb_ray = scene.nb_ray / (depth + 1);
     Vector nt;
     Vector nb;
     Vector indirect_color;
@@ -261,30 +301,53 @@ Vector indirect_light(const Scene &scene,
 
     Vector diffuse;
     Vector spec;
+
     for (unsigned i = 0; i  < nb_ray; ++i)
     {
         double r1 = distribution(generator);
         double r2 = distribution(generator);
 
         Vector sample = uniform_sample_hemisphere(r1, r2);
-        Vector sample_world(sample[0] * nb[0] + sample[1] * normal[0] + sample[2] * nt[0],
-                            sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
-                            sample[0] * nb[2] + sample[1] * normal[2] + sample[2] * nt[2]);
-        //sample_world.norm_inplace();
+        Vector incident(sample[0] * nb[0] + sample[1] * normal[0] + sample[2] * nt[0],
+                        sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
+                        sample[0] * nb[2] + sample[1] * normal[2] + sample[2] * nt[2]);
 
-        Vector origin = inter + sample_world * 0.001; // bias
-        Ray ray(origin, sample_world);
+        Vector origin = inter + incident * scene.bias;
+        Ray ray(origin, incident);
 
         Vector li = cast_ray(scene, ray, tree, depth + 1);
         diffuse += li * r1;
 
-        Vector h = (vo + sample_world) / ((vo + sample_world).get_dist());
-        double d = beckman(normal, h, 0.2); // roughness 0.2
-       // double d = GGX_Distribution(normal, h, 0.2); // roughness 0.2
-        double g = g_cook_torrance(normal, vo, h, sample_world);
-        double f = schlick(1, 1, sample_world.dot_product(h));
+        Vector hr = vo + incident;
+        hr /= hr.get_dist();
 
-        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
+        
+        Vector ht = (-1 * incident - 1.5 * vo); // ni fix to 1 no 1.5
+        ht /= ht.get_dist();
+
+        double ft = incident.dot_product(ht) * vo.dot_product(ht);
+        ft /= (incident.dot_product(normal) * (vo.dot_product(normal)));
+
+        double dt = beckman(normal, ht, 0.2);
+        double gt = g_cook_torrance(normal, vo, ht, incident);
+        double fresnel_t = schlick(1, 1.5, incident.dot_product(ht));
+
+        double right = (1.5 * 1.5) * (1 - fresnel_t) * gt * dt;
+        right /= pow((1.0 * (incident.dot_product(ht)) + 1.5 * (vo.dot_product(ht))), 2);
+
+        ft *= right;
+        
+       // double d = GGX_Distribution(normal, hr, 0.2); // roughness 0.2
+        double d = beckman(normal, hr, 0.2); // roughness 0.2
+        double g = g_cook_torrance(normal, vo, hr, incident);
+        double f = schlick(1, 1.5, incident.dot_product(hr));
+   //     double f = fresnel_transmision(incident, hr);  // broken
+
+        double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
+   //     fr += ft;
+        spec += M_PI * 2 * li * fr * r1;
+//        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
+     //   spec += 2 * M_PI * fr * r1 * li;
     }
 
     auto kd_map = scene.map_text.find(material.kd_name);
