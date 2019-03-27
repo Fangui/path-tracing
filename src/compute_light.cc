@@ -81,7 +81,7 @@ Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth >= 2) // max depth
+    if (depth >= scene.depth) // max depth
     {
         for (const auto *light : scene.lights) // send ray in every light
         {
@@ -103,15 +103,15 @@ Vector cast_ray(const Scene &scene,
         /*
         Vector direct_color = direct_light(scene, material, ray,
                                            tree, inter, normal, depth);
+        return direct_color;
         */
         Vector indirect_color;
 
         if (material.illum == 4) //transparence
         {
             Vector refr = reflect(ray.dir, normal);
-            double bias = 0.001;
 
-            Vector origin = inter + refr * bias;
+            Vector origin = inter + refr * BIAS;
             Ray r(origin, refr);
 
             indirect_color = cast_ray(scene, r, tree, depth + 1) * 0.8; //Fixme
@@ -120,7 +120,7 @@ Vector cast_ray(const Scene &scene,
         {
             double kr = fresnel(ray.dir, normal, material.ni);
             bool outside = ray.dir.dot_product(normal) < 0;
-            Vector bias = 0.001 * normal;
+            Vector bias = BIAS * normal;
 
             Vector refraction_color;
             if (kr < 1)
@@ -294,8 +294,6 @@ Vector indirect_light(const Scene &scene,
     Vector nb;
     Vector indirect_color;
     create_coordinate_system(normal, nt, nb);
-    //constexpr double inv_pdf = 2 * M_PI;
-    //const double pdf = 1.0 / (2 * M_PI);
 
     const Vector vo = inter - scene.cam_pos;
 
@@ -312,7 +310,7 @@ Vector indirect_light(const Scene &scene,
                         sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
                         sample[0] * nb[2] + sample[1] * normal[2] + sample[2] * nt[2]);
 
-        Vector origin = inter + incident * scene.bias;
+        Vector origin = inter + incident * BIAS;
         Ray ray(origin, incident);
 
         Vector li = cast_ray(scene, ray, tree, depth + 1);
@@ -321,7 +319,6 @@ Vector indirect_light(const Scene &scene,
         Vector hr = vo + incident;
         hr /= hr.get_dist();
 
-        
         Vector ht = (-1 * incident - 1.5 * vo); // ni fix to 1 no 1.5
         ht /= ht.get_dist();
 
@@ -344,7 +341,7 @@ Vector indirect_light(const Scene &scene,
    //     double f = fresnel_transmision(incident, hr);  // broken
 
         double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
-   //     fr += ft;
+ //       fr += ft;
         spec += M_PI * 2 * li * fr * r1;
 //        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
      //   spec += 2 * M_PI * fr * r1 * li;
@@ -379,9 +376,8 @@ Vector direct_light(const Scene &scene, const Material &material,
         //double kr = fresnel(light.dir, normal, material.ni);
 
         Vector refr = reflect(ray.dir, normal);
-        double bias = 0.001;
 
-        Vector origin = inter + refr * bias;
+        Vector origin = inter + refr * BIAS;
         Ray r(origin, refr);
 
         color += cast_ray(scene, r, tree, depth + 1) * 0.8;
@@ -391,7 +387,7 @@ Vector direct_light(const Scene &scene, const Material &material,
     {
         double kr = fresnel(ray.dir, normal, material.ni);
         bool outside = ray.dir.dot_product(normal) < 0;
-        Vector bias = 0.001 * normal;
+        Vector bias = BIAS * normal;
 
         Vector refraction_color;
         if (kr < 1)

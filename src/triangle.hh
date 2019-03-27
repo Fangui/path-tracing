@@ -2,8 +2,8 @@
 
 #include "vector.hh"
 
-//#define EPSILON 1.19209290E-07F
 #define EPSILON 0.00001
+#define BIAS    0.001
 
 struct Ray;
 

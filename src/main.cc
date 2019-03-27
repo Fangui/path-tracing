@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         path_scene = argv[1];
     else
     {
-        std::cerr << "Usage: ./main <scene> <nb_ray>\n";
+        std::cerr << "Usage: ./main <scene> <nb_ray> <depth>\n";
         return 1;
     }
 
@@ -27,7 +27,11 @@ int main(int argc, char *argv[])
 
     Scene scene = parse_scene(path_scene);
     if (argc > 2)
+    {
         scene.nb_ray = atoi(argv[2]);
+        if (argc > 3)
+            scene.depth = atoi(argv[3]);
+    }
 
     Vector u_n = scene.cam_u.norm_inplace();
     Vector v = scene.cam_v.norm_inplace();

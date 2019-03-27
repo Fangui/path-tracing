@@ -19,7 +19,7 @@ struct Scene
     }
 
     int nb_ray = 16;
-    double bias = 0.001;
+    unsigned char depth = 2;
     int height;
     int width;
     Vector cam_pos;

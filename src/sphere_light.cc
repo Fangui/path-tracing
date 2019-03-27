@@ -13,7 +13,7 @@ Vector SphereLight::compute_light(const Vector &inter,
         return Vector(0, 0, 0);
     }
 
-    Vector origin = inter + dir; // bias
+    Vector origin = inter + dir * 0.001;
     Ray ray(origin, dir);
 
     double dist = -1;
