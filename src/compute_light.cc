@@ -125,12 +125,12 @@ Vector cast_ray(const Scene &scene,
             Vector refraction_color;
             if (kr < 1)
             {
-                Vector refraction_direction = refract(ray.dir, normal, material.ni, material.ni).norm_inplace();
+                Vector refraction_direction = refract(ray.dir, normal, 1, material.ni).norm_inplace();
                 Vector refract_ray_orig = outside ? inter - bias : inter + bias;
                 Ray ray_refr(refract_ray_orig, refraction_direction);
                 ray_refr.ni = material.ni;
 
-                return refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
+                refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
             }
 
             Vector reflect_direction = reflect(ray.dir, normal).norm_inplace();
@@ -138,8 +138,7 @@ Vector cast_ray(const Scene &scene,
             Ray ray_refr(reflection_ray_orig, reflect_direction);
 
             Vector reflection_color = cast_ray(scene, ray_refr, tree, depth + 1);
-            return reflection_color * kr + refraction_color * (1 - kr) * 0.9;
-
+            return reflection_color * kr + refraction_color * (1 - kr);
 
                 /*
                Ray reflRay(x, r.d-n*2*n.dot(r.d));     // Ideal dielectric REFRACTION
@@ -373,7 +372,7 @@ Vector direct_light(const Scene &scene, const Material &material,
 
     if (material.illum == 4) //transparence
     {
-        //double kr = fresnel(light.dir, normal, material.ni);
+        //doule kr = fresnel(light.dir, normal, material.ni);
 
         Vector refr = reflect(ray.dir, normal);
 
@@ -383,7 +382,7 @@ Vector direct_light(const Scene &scene, const Material &material,
         color += cast_ray(scene, r, tree, depth + 1) * 0.8;
         return color;
     }
-    else if (false && material.illum == 5)
+    else if (material.illum == 5) // refraction
     {
         double kr = fresnel(ray.dir, normal, material.ni);
         bool outside = ray.dir.dot_product(normal) < 0;
@@ -392,12 +391,12 @@ Vector direct_light(const Scene &scene, const Material &material,
         Vector refraction_color;
         if (kr < 1)
         {
-            Vector refraction_direction = refract(ray.dir, normal, material.ni, material.ni).norm_inplace();
+            Vector refraction_direction = refract(ray.dir, normal, 1, material.ni).norm_inplace();
             Vector refract_ray_orig = outside ? inter - bias : inter + bias;
             Ray ray_refr(refract_ray_orig, refraction_direction);
             ray_refr.ni = material.ni;
 
-            return refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
+            refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
         }
 
         Vector reflect_direction = reflect(ray.dir, normal).norm_inplace();
@@ -406,11 +405,11 @@ Vector direct_light(const Scene &scene, const Material &material,
 
         Vector reflection_color = cast_ray(scene, ray_refr, tree, depth + 1);
 
-        return reflection_color * kr + refraction_color * (1 - kr) * 0.9;
+        return reflection_color * kr + refraction_color * (1 - kr);
     }
 
     double rat;
-    for (const auto *light : scene.lights)
+    for (const auto *light : scene.lights) // diffuse light
     {
         Vector L = light->compute_light(inter, tree, rat);
 
