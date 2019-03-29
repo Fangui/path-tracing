@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
 
     t1 = omp_get_wtime();
 
+    constexpr double gamma = 1. / 2.2;
 #pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
@@ -78,6 +79,8 @@ int main(int argc, char *argv[])
             Ray r(scene.cam_pos, dir);
 
             vect[idx] = cast_ray(scene, r, tree, 0); // depth
+            for (unsigned g = 0; g < 3; ++g) // gamme
+                vect[idx][g] = pow(vect[idx][g], gamma);
         }
     }
     t2 = omp_get_wtime();
