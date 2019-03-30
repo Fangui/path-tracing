@@ -288,13 +288,13 @@ Vector indirect_light(const Scene &scene,
                       const Ray &ray,
                       unsigned char depth)
 {
-    const unsigned nb_ray = scene.nb_ray / (depth + 1);
+    const unsigned nb_ray = scene.nb_ray / ((depth + 1) * 2);
     Vector nt;
     Vector nb;
     Vector indirect_color;
     create_coordinate_system(normal, nt, nb);
 
-    const Vector vo = inter - scene.cam_pos;
+    const Vector vo = -ray.dir;
 
     Vector diffuse;
     Vector spec;
@@ -318,29 +318,33 @@ Vector indirect_light(const Scene &scene,
         Vector hr = vo + incident;
         hr /= hr.get_dist();
 
-        Vector ht = (-1 * incident - 1.5 * vo); // ni fix to 1 no 1.5
-        ht /= ht.get_dist();
-
-        double ft = incident.dot_product(ht) * vo.dot_product(ht);
-        ft /= (incident.dot_product(normal) * (vo.dot_product(normal)));
-
-        double dt = beckman(normal, ht, 0.2);
-        double gt = g_cook_torrance(normal, vo, ht, incident);
-        double fresnel_t = schlick(1, 1.5, incident.dot_product(ht));
-
-        double right = (1.5 * 1.5) * (1 - fresnel_t) * gt * dt;
-        right /= pow((1.0 * (incident.dot_product(ht)) + 1.5 * (vo.dot_product(ht))), 2);
-
-        ft *= right;
-        
-       // double d = GGX_Distribution(normal, hr, 0.2); // roughness 0.2
+        // double d = GGX_Distribution(normal, hr, 0.2); // roughness 0.2
         double d = beckman(normal, hr, 0.2); // roughness 0.2
         double g = g_cook_torrance(normal, vo, hr, incident);
         double f = schlick(1, 1.5, incident.dot_product(hr));
-   //     double f = fresnel_transmision(incident, hr);  // broken
+        //     double f = fresnel_transmision(incident, hr);  // broken
 
         double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
- //       fr += ft;
+
+        if (material.ni > 1.2) // not ideal refraction
+        {
+           
+            Vector ht = (-1 * incident - 1.5 * vo); // ni fix to 1 no 1.5
+            ht /= ht.get_dist();
+
+            double ft = incident.dot_product(ht) * vo.dot_product(ht);
+            ft /= (incident.dot_product(normal) * (vo.dot_product(normal)));
+
+            double dt = beckman(normal, ht, 0.2);
+            double gt = g_cook_torrance(normal, vo, ht, incident);
+            double fresnel_t = schlick(1, 1.5, incident.dot_product(ht));
+
+            double right = (1.5 * 1.5) * (1 - fresnel_t) * gt * dt;
+            right /= pow((1.0 * (incident.dot_product(ht)) + 1.5 * (vo.dot_product(ht))), 2);
+
+            ft *= right;
+            fr += ft;
+        }
         spec += M_PI * 2 * li * fr * r1;
 //        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
      //   spec += 2 * M_PI * fr * r1 * li;
