@@ -50,6 +50,7 @@ Vector refract(const Vector& incident,
     return k < 0 ? Vector(0, 0, 0) : eta * incident + (eta * cosi - sqrt(k)) * n;
 }
 
+
 double fresnel(const Vector &incident,
                const Vector &normal,
                double etat)
@@ -74,24 +75,56 @@ double fresnel(const Vector &incident,
         double rp = ((etai * cos_i) - (etat * cos_t)) / ((etai * cos_i) + (etat * cos_t));
         return (rs * rs + rp * rp) / 2;
     }
-    // As a consequence of the conservation of energy, transmittance is given by:
-    // kt = 1 - kr;
+}
+
+Vector refract_ray(const Scene &scene, const KdTree &tree,
+                   const Vector &incident, const Vector &normal,
+                   const Vector &inter,
+                   double ior, unsigned depth) // get refraction + reflection
+{
+
+    double kr = fresnel(incident, normal, ior);
+    bool outside = incident.dot_product(normal) < 0;
+    Vector bias = BIAS * normal;
+
+    Vector refraction_color;
+    if (kr < 1)
+    {
+        Vector refract_dir = refract(incident, normal, 1, ior).norm_inplace();
+        Vector refract_ori = outside ? inter - bias : inter + bias;
+        Ray ray_refr(refract_ori, refract_dir);
+        ray_refr.ni = ior;
+
+        refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
+    }
+
+    Vector reflect_dir = reflect(incident, normal).norm_inplace();
+    Vector reflect_ori = outside ? inter + bias : inter - bias;
+    Ray ray_refl(reflect_ori, reflect_dir);
+
+    Vector reflection_color = cast_ray(scene, ray_refl, tree, depth + 1);
+    return reflection_color * kr + refraction_color * (1 - kr);
+}
+
+Vector ray_to_light(const std::vector<Light*> lights,
+                    const Ray &ray, const KdTree &tree)
+{
+    for (const auto *light : lights) // send ray in every light
+    {
+        Ray r(ray.o, -light->dir);
+        if (!tree.search_inter(r))
+            return light->color;
+    }
+    return Vector(0.f, 0.f, 0.f);
 }
 
 Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
 {
-    if (depth >= scene.depth) // max depth
-    {
-        for (const auto *light : scene.lights) // send ray in every light
-        {
-            Ray r(ray.o, -light->dir);
-            if (!tree.search_inter(r))
-                return light->color;
-        }
-        return Vector(0.f, 0.f, 0.f);
-    }
+    if (depth >= scene.depth) // max depth bi-path tracing
+        return ray_to_light(scene.lights, ray, tree);
+
     double dist = -1;
     if (tree.search(ray, dist))
     {
@@ -116,47 +149,17 @@ Vector cast_ray(const Scene &scene,
         }
         else if (material.illum == 5)
         {
-            double kr = fresnel(ray.dir, normal, material.ni);
-            bool outside = ray.dir.dot_product(normal) < 0;
-            Vector bias = BIAS * normal;
-
-            Vector refraction_color;
-            if (kr < 1)
-            {
-                Vector refract_dir = refract(ray.dir, normal, 1, material.ni).norm_inplace();
-                Vector refract_ori = outside ? inter - bias : inter + bias;
-                Ray ray_refr(refract_ori, refract_dir);
-                ray_refr.ni = material.ni;
-
-                refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
-            }
-
-            Vector reflect_dir = reflect(ray.dir, normal).norm_inplace();
-            Vector reflect_ori = outside ? inter + bias : inter - bias;
-            Ray ray_refl(reflect_ori, reflect_dir);
-
-            Vector reflection_color = cast_ray(scene, ray_refl, tree, depth + 1);
-
-           return reflection_color * kr + refraction_color * (1 - kr);
+            indirect_color = refract_ray(scene, tree, ray.dir,
+                                         normal, inter, material.ni, depth) * material.kd;
         }
         else
             indirect_color = indirect_light(scene, tree,
-                                               inter, normal, material, ray,
-                                               depth);
+                                            inter, normal, material, ray,
+                                            depth);
 
-      //  Vector res = (direct_color  + 2 * indirect_color );
         return direct_color / M_PI + indirect_color;
-//        return indirect_color;
-
     }
-
-    for (const auto *light : scene.lights)
-    {
-        if (light->dir.dot_product(ray.dir) < 0) // FIXME assume hit directional
-            return light->color;
-    }
-
-    return Vector(0.f, 0.f, 0.f);
+    return ray_to_light(scene.lights, ray, tree);
 }
 
 void create_coordinate_system(const Vector &N, Vector &Nt, Vector &Nb)
@@ -374,28 +377,9 @@ Vector direct_light(const Scene &scene, const Material &material,
     }
     else if (material.illum == 5) // refraction
     {
-        double kr = fresnel(ray.dir, normal, material.ni);
-        bool outside = ray.dir.dot_product(normal) < 0;
-        Vector bias = BIAS * normal;
+        color = refract_ray(scene, tree, ray.dir,
+                                     normal, inter, material.ni, depth);
 
-        Vector refraction_color;
-        if (kr < 1)
-        {
-            Vector refract_dir = refract(ray.dir, normal, 1, material.ni).norm_inplace();
-            Vector refract_ori = outside ? inter - bias : inter + bias;
-            Ray ray_refr(refract_ori, refract_dir);
-            ray_refr.ni = material.ni;
-
-            refraction_color = cast_ray(scene, ray_refr, tree, depth + 1);
-        }
-
-        Vector reflect_dir = reflect(ray.dir, normal).norm_inplace();
-        Vector reflect_ori = outside ? inter + bias : inter - bias;
-        Ray ray_refl(reflect_ori, reflect_dir);
-
-        Vector reflection_color = cast_ray(scene, ray_refl, tree, depth + 1);
-
-        return (reflection_color * kr + refraction_color * (1 - kr));
     }
 
     double rat;
