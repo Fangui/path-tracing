@@ -101,11 +101,8 @@ Vector cast_ray(const Scene &scene,
           + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
         normal.norm_inplace();
 
-        /*
         Vector direct_color = direct_light(scene, material, ray,
                                            tree, inter, normal, depth);
-        return direct_color;
-        */
         Vector indirect_color;
 
         if (material.illum == 4) //transparence
@@ -148,8 +145,8 @@ Vector cast_ray(const Scene &scene,
                                                depth);
 
       //  Vector res = (direct_color  + 2 * indirect_color );
-      //  Vector res = direct_color + indirect_color * M_PI / 2;
-        return indirect_color;
+        return direct_color / M_PI + indirect_color;
+//        return indirect_color;
 
     }
 
