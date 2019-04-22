@@ -31,4 +31,3 @@ tar:
 	tar -cvjf examples.tar.bz2 examples Textures
 untar:
 	tar -xvf examples.tar.bz2
-	rm -f examples.tar.bz2

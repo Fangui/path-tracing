@@ -66,9 +66,9 @@ int main(int argc, char *argv[])
 #pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
-        for (int j = -scene.height / 2; j < scene.height / 2; ++j)
+        for (int j = scene.height / 2; j > -scene.height / 2; --j)
         {
-            unsigned idx = (i + scene.width / 2) * scene.height + (j + scene.height / 2);
+            unsigned idx = (i + scene.width / 2) * scene.height + (scene.height / 2 - j);
             Vector o = scene.cam_u * j;
             Vector b = scene.cam_v * i;
             o += C;
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
             Ray r(scene.cam_pos, dir);
 
             vect[idx] = cast_ray(scene, r, tree, 0); // depth
-            for (unsigned g = 0; g < 3; ++g) // gamme
-                vect[idx][g] = pow(vect[idx][g], gamma);
+//            for (unsigned g = 0; g < 3; ++g) // gamme
+//                vect[idx][g] = pow(vect[idx][g], gamma);
         }
     }
     t2 = omp_get_wtime();

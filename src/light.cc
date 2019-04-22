@@ -14,7 +14,7 @@ Vector Light::compute_light(const Vector &inter,
 {
     Vector l_dir = -dir;
 
-    Vector origin = inter + l_dir * BIAS; // bias
+    Vector origin = inter + l_dir * BIAS;
     Ray ray(origin, l_dir);
 
     if (tree.search_inter(ray))
