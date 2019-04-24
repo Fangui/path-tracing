@@ -10,24 +10,25 @@
 #include "parse.hh"
 #include "vector.hh"
 
-void denoise(std::vector<Vector>& vect, std::vector<Vector>& res, int s, int width)
+void denoise(std::vector<Vector>& vect, std::vector<Vector>& res,
+             unsigned s, unsigned width)
 {
     std::vector<float> vectr;
     std::vector<float> vectg;
     std::vector<float> vectb;
-    auto len = vect.size();
+    unsigned len = vect.size();
 
-    for (auto x = width; x < len - width; x++)
+    for (unsigned x = width; x < len - width; ++x)
     {
         vectr.clear();
         vectb.clear();
         vectg.clear();
-        for (auto i = 0; i < s; i++)
+        for (unsigned i = 0; i < s; i++)
         {
-            for (auto j = 0; j < s; j++)
+            for (unsigned j = 0; j < s; j++)
             {
-                auto ind = (i - s / 2 + 1) * width + (j - s / 2 + 1);
-                if (x + ind >= 0 && x + ind < len)
+                unsigned ind = (i - s / 2 + 1) * width + (j - s / 2 + 1);
+                if (x + ind < len)
                 {
                     vectr.emplace_back(vect[x + ind][0]);
                     vectg.emplace_back(vect[x + ind][1]);
@@ -46,6 +47,7 @@ void denoise(std::vector<Vector>& vect, std::vector<Vector>& res, int s, int wid
 int main(int argc, char *argv[])
 {
     std::string path_scene;
+    int matrix_size = 3;
 
     if (argc > 1)
         path_scene = argv[1];
@@ -64,6 +66,9 @@ int main(int argc, char *argv[])
         scene.nb_ray = atoi(argv[2]);
         if (argc > 3)
             scene.depth = atoi(argv[3]);
+
+        if (argc > 4)
+            matrix_size = atoi(argv[4]);
     }
 
     Vector u_n = scene.cam_u.norm_inplace();
@@ -95,7 +100,7 @@ int main(int argc, char *argv[])
 
     t1 = omp_get_wtime();
 
-    constexpr double gamma = 1. / 2.2;
+//    constexpr double gamma = 1. / 2.2;
 #pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
@@ -137,7 +142,7 @@ int main(int argc, char *argv[])
         }
     }*/
     std::vector<Vector> res;
-    denoise(vect, res, 5, scene.width);
+    denoise(vect, res, matrix_size, scene.width);
 
     double t3 = omp_get_wtime();
     std::cout << "Time applying denoise: " << t3 - t4 << "s\n";

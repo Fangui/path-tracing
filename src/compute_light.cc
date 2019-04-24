@@ -150,7 +150,8 @@ Vector cast_ray(const Scene &scene,
         else if (material.illum == 5)
         {
             indirect_color = refract_ray(scene, tree, ray.dir,
-                                         normal, inter, material.ni, depth) * material.kd;
+                                         normal, inter,
+                                         material.ni, depth) * material.kd;
         }
         else
             indirect_color = indirect_light(scene, tree,
@@ -283,6 +284,7 @@ Vector indirect_light(const Scene &scene,
     Vector indirect_color;
     create_coordinate_system(normal, nt, nb);
 
+   // const Vector vo = inter - scene.cam_pos;
     const Vector vo = inter - scene.cam_pos;
     //const Vector vo = -ray.dir;
 
@@ -316,6 +318,7 @@ Vector indirect_light(const Scene &scene,
 
         double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
 
+        /*
         if (material.ni > 1.2) // not ideal refraction
         {
             Vector ht = -1 * (1 * incident + 1.5 * vo); // ni fix to 1 no 1.5
@@ -333,7 +336,7 @@ Vector indirect_light(const Scene &scene,
 
             ft *= right;
             fr += ft;
-        }
+        }*/
         spec += M_PI * 2 * li * fr * r1; // p = 1 / 2PI
  // p = 1 / 2PI//        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
     }
