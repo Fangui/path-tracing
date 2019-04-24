@@ -10,6 +10,39 @@
 #include "parse.hh"
 #include "vector.hh"
 
+void denoise(std::vector<Vector>& vect, std::vector<Vector>& res, int s, int width)
+{
+    std::vector<float> vectr;
+    std::vector<float> vectg;
+    std::vector<float> vectb;
+    auto len = vect.size();
+
+    for (auto x = width; x < len - width; x++)
+    {
+        vectr.clear();
+        vectb.clear();
+        vectg.clear();
+        for (auto i = 0; i < s; i++)
+        {
+            for (auto j = 0; j < s; j++)
+            {
+                auto ind = (i - s / 2 + 1) * width + (j - s / 2 + 1);
+                if (x + ind >= 0 && x + ind < len)
+                {
+                    vectr.emplace_back(vect[x + ind][0]);
+                    vectg.emplace_back(vect[x + ind][1]);
+                    vectb.emplace_back(vect[x + ind][2]);
+                }
+            }
+        }
+        std::sort(vectr.begin(), vectr.end());
+        std::sort(vectg.begin(), vectg.end());
+        std::sort(vectb.begin(), vectb.end());
+        res.emplace_back(Vector(vectr[s * s / 2 - 1],
+                                vectg[s * s / 2 - 1], vectb[s * s / 2 - 1]));
+    }
+}
+
 int main(int argc, char *argv[])
 {
     std::string path_scene;
@@ -22,7 +55,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    
+
     double t1 = omp_get_wtime();
 
     Scene scene = parse_scene(path_scene);
@@ -86,9 +119,11 @@ int main(int argc, char *argv[])
     t2 = omp_get_wtime();
     std::cout << "Time raytracing: " << t2 - t1 << "s\n";
 
+    write_ppm("out.ppm", vect, scene.width, scene.height);
+    double t4 = omp_get_wtime();
+    /*
     std::vector<Vector> out;
 
-    /*
     for (int i = 0; i < scene.width; i += 2)
     {
         for (int j = 0; j < scene.height; j += 2)
@@ -100,7 +135,14 @@ int main(int argc, char *argv[])
 
             out.push_back(c);
         }
-    }
-    return write_ppm("out.ppm", out, scene.width / 2, scene.height / 2);*/
-    return write_ppm("out.ppm", vect, scene.width, scene.height);
+    }*/
+    std::vector<Vector> res;
+    denoise(vect, res, 5, scene.width);
+
+    double t3 = omp_get_wtime();
+    std::cout << "Time applying denoise: " << t3 - t4 << "s\n";
+
+    //return write_ppm("out.ppm", out, scene.width / 2, scene.height / 2);
+    return write_ppm("out_denoise.ppm", res, scene.width, scene.height);
+
 }
