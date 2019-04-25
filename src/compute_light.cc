@@ -152,6 +152,7 @@ Vector cast_ray(const Scene &scene,
             indirect_color = refract_ray(scene, tree, ray.dir,
                                          normal, inter,
                                          material.ni, depth) * material.kd; // FIXME texture
+            return indirect_color;
         }
         indirect_color += indirect_light(scene, tree,
                                             inter, normal, material, ray,

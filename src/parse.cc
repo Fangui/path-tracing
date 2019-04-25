@@ -413,6 +413,7 @@ int write_ppm(const std::string &out_path, const std::vector<Vector> &vect,
             }
             out << '\n';
         }
+        std::cout << "Create " + out_path + " file\n";
     }
     else
     {

@@ -47,13 +47,14 @@ void denoise(std::vector<Vector>& vect, std::vector<Vector>& res,
 int main(int argc, char *argv[])
 {
     std::string path_scene;
+    std::string out_file = "out";
     int matrix_size = 3;
 
     if (argc > 1)
         path_scene = argv[1];
     else
     {
-        std::cerr << "Usage: ./main <scene> <nb_ray> <depth>\n";
+        std::cerr << "Usage: ./main <scene> <nb_ray> <depth> <filter> <out_file>\n";
         return 1;
     }
 
@@ -69,6 +70,9 @@ int main(int argc, char *argv[])
 
         if (argc > 4)
             matrix_size = atoi(argv[4]);
+
+        if (argc > 5)
+            out_file = argv[5];
     }
 
     Vector u_n = scene.cam_u.norm_inplace();
@@ -124,7 +128,7 @@ int main(int argc, char *argv[])
     t2 = omp_get_wtime();
     std::cout << "Time raytracing: " << t2 - t1 << "s\n";
 
-    write_ppm("out.ppm", vect, scene.width, scene.height);
+    write_ppm(out_file + ".ppm", vect, scene.width, scene.height);
     double t4 = omp_get_wtime();
     /*
     std::vector<Vector> out;
@@ -148,6 +152,6 @@ int main(int argc, char *argv[])
     std::cout << "Time applying denoise: " << t3 - t4 << "s\n";
 
     //return write_ppm("out.ppm", out, scene.width / 2, scene.height / 2);
-    return write_ppm("out_denoise.ppm", res, scene.width, scene.height);
+    return write_ppm(out_file + "_denoise.ppm", res, scene.width, scene.height);
 
 }
