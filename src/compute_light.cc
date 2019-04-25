@@ -138,28 +138,28 @@ Vector cast_ray(const Scene &scene,
                                            tree, inter, normal, depth);
         Vector indirect_color;
 
-        if (material.illum == 4) //transparence
+        if (material.illum == 4) // reflection
         {
-            Vector refr = reflect(ray.dir, normal);
+            Vector refl = reflect(ray.dir, normal);
 
-            Vector origin = inter + refr * BIAS;
-            Ray r(origin, refr);
+            Vector origin = inter + refl * BIAS;
+            Ray ray_refl(origin, refl);
 
-            indirect_color = cast_ray(scene, r, tree, depth + 1) * 0.8; //Fixme
+            indirect_color = cast_ray(scene, ray_refl, tree, depth + 1) * 0.8; //Fixme
         }
         else if (material.illum == 5)
         {
             indirect_color = refract_ray(scene, tree, ray.dir,
                                          normal, inter,
-                                         material.ni, depth) * material.kd;
+                                         material.ni, depth) * material.kd; // FIXME texture
         }
-        else
-            indirect_color = indirect_light(scene, tree,
+        indirect_color += indirect_light(scene, tree,
                                             inter, normal, material, ray,
                                             depth);
 
         return direct_color / M_PI + indirect_color;
     }
+
     return ray_to_light(scene.lights, ray, tree);
 }
 
@@ -365,6 +365,7 @@ Vector direct_light(const Scene &scene, const Material &material,
 {
     Vector color;
 
+    /*
     if (material.illum == 4) //transparence
     {
         //doule kr = fresnel(light.dir, normal, material.ni);
@@ -383,7 +384,7 @@ Vector direct_light(const Scene &scene, const Material &material,
         color = refract_ray(scene, tree, ray.dir,
                                      normal, inter, material.ni, depth);
 
-    }
+    }*/
 
     double rat;
     for (const auto *light : scene.lights) // diffuse light
@@ -411,7 +412,7 @@ Vector direct_light(const Scene &scene, const Material &material,
             if (spec < 0)
                 spec = 0;
         }
-        if (material.illum < 4 && diff)
+        if (diff)
         {
             auto kd_map = scene.map_text.find(material.kd_name);
             if (kd_map != scene.map_text.end())
