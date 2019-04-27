@@ -151,17 +151,18 @@ Vector cast_ray(const Scene &scene,
         {
             indirect_color = refract_ray(scene, tree, ray.dir,
                                          normal, inter,
-                                         material.ni, depth) * material.kd; // FIXME texture
-            return indirect_color;
+                                         material.ni, depth) * material.kd; // FIXME texture 
         }
         indirect_color += indirect_light(scene, tree,
-                                            inter, normal, material, ray,
-                                            depth);
+                                         inter, normal, material, ray,
+                                         depth);
 
-        return direct_color / M_PI + indirect_color;
+        return direct_color / M_PI + indirect_color + material.ke;
     }
 
-    return ray_to_light(scene.lights, ray, tree);
+    if (depth == 0)
+        return Vector(0, 0, 0);
+    return Vector(0.5, 0.5, 0.5);
 }
 
 void create_coordinate_system(const Vector &N, Vector &Nt, Vector &Nb)
