@@ -106,16 +106,32 @@ Vector refract_ray(const Scene &scene, const KdTree &tree,
     return reflection_color * kr + refraction_color * (1 - kr);
 }
 
-Vector ray_to_light(const std::vector<Light*> lights,
+Vector ray_to_light(const Scene &scene, const std::vector<Light*> lights,
                     const Ray &ray, const KdTree &tree)
 {
+    Vector color(0, 0, 0);
+    for (unsigned i = 0; i < scene.emissive.size(); ++i)
+    {
+        Vector dir = (scene.emissive[0] - ray.o).norm_inplace();
+        Ray r(ray.o, dir);
+
+        double dist = -1;
+        if (tree.search(r, dist))
+        {
+            const auto material = scene.map.at(scene.mat_names[r.tri.id]);
+            if (material.ke.is_not_null())
+                color += material.ke;
+        }
+    }
+
     for (const auto *light : lights) // send ray in every light
     {
         Ray r(ray.o, -light->dir);
         if (!tree.search_inter(r))
-            return light->color;
+            color += light->color;
     }
-    return Vector(0.f, 0.f, 0.f);
+
+    return color;
 }
 
 Vector cast_ray(const Scene &scene,
@@ -123,7 +139,7 @@ Vector cast_ray(const Scene &scene,
                 unsigned char depth)
 {
     if (depth >= scene.depth) // max depth bi-path tracing
-        return ray_to_light(scene.lights, ray, tree);
+        return ray_to_light(scene, scene.lights, ray, tree);
 
     double dist = -1;
     if (tree.search(ray, dist))
@@ -134,8 +150,9 @@ Vector cast_ray(const Scene &scene,
           + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
         normal.norm_inplace();
 
-        Vector direct_color = direct_light(scene, material, ray,
-                                           tree, inter, normal, depth);
+
+    //    Vector direct_color = direct_light(scene, material, ray,
+      //                                     tree, inter, normal, depth);
         Vector indirect_color;
 
         if (material.illum == 4) // reflection
@@ -153,16 +170,15 @@ Vector cast_ray(const Scene &scene,
                                          normal, inter,
                                          material.ni, depth) * material.kd; // FIXME texture 
         }
+        
         indirect_color += indirect_light(scene, tree,
                                          inter, normal, material, ray,
                                          depth);
 
-        return direct_color / M_PI + indirect_color + material.ke;
+        return indirect_color + material.ke;
     }
 
-    if (depth == 0)
-        return Vector(0, 0, 0);
-    return Vector(0.5, 0.5, 0.5);
+    return Vector(0, 0, 0);
 }
 
 void create_coordinate_system(const Vector &N, Vector &Nt, Vector &Nb)
@@ -286,9 +302,9 @@ Vector indirect_light(const Scene &scene,
     Vector indirect_color;
     create_coordinate_system(normal, nt, nb);
 
-   // const Vector vo = inter - scene.cam_pos;
     const Vector vo = inter - scene.cam_pos;
-    //const Vector vo = -ray.dir;
+  //  const Vector vo = scene.cam_pos - inter;
+   // const Vector vo = -ray.dir;
 
     Vector diffuse;
     Vector spec;
@@ -402,7 +418,7 @@ Vector direct_light(const Scene &scene, const Material &material,
         }
 
         double spec = 0;
-        if (!(L[0] == 0 && L[1] == 0 && L[2] == 0))
+        if (L.is_not_null())
         {
             Vector R = reflect(L, normal);
             R.norm_inplace();

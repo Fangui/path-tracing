@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-
     double t1 = omp_get_wtime();
 
     Scene scene = parse_scene(path_scene);
@@ -79,14 +78,14 @@ int main(int argc, char *argv[])
     Vector v = scene.cam_v.norm_inplace();
     Vector w = v.cross_product(u_n);
 
-    double val = tanf(scene.fov * M_PI / 360);
+    double val = tan(scene.fov * M_PI / 360);
     val = val == 0.0 ? 0.0001 : val;
     double L = scene.width / 2;
     L /= val; // distance between camera and center of screen
 
     std::vector<Triangle> vertices;
     for (const auto& name : scene.objs)
-      obj_to_vertices(name, scene.mat_names, vertices);
+      obj_to_vertices(name, scene.mat_names, vertices, scene);
 
     double t2 = omp_get_wtime();
     std::cout << "Time to parse file: " << t2 - t1 << "s\n";
@@ -104,7 +103,7 @@ int main(int argc, char *argv[])
 
     t1 = omp_get_wtime();
 
-//    constexpr double gamma = 1. / 2.2;
+    constexpr double gamma = 1. / 2.2;
 #pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
@@ -121,8 +120,12 @@ int main(int argc, char *argv[])
             Ray r(scene.cam_pos, dir);
 
             vect[idx] = cast_ray(scene, r, tree, 0); // depth
-//            for (unsigned g = 0; g < 3; ++g) // gamme
-//                vect[idx][g] = pow(vect[idx][g], gamma);
+            for (unsigned g = 0; g < 3; ++g) // gamme
+            {
+                vect[idx][g] = pow(vect[idx][g], gamma);
+                if (vect[idx][g] > 1)
+                    vect[idx][g] = 1;
+            }
         }
     }
     t2 = omp_get_wtime();

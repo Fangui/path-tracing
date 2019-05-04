@@ -26,6 +26,11 @@ public:
       tab[3] = 0;
     }
 
+    bool is_not_null(void) const
+    {
+        return coord.x != 0 || coord.y != 0 || coord.z != 0;
+    }
+
     Vector operator+(const Vector &rhs) const;
     Vector operator+=(const Vector &rhs);
     Vector operator-(const Vector &rhs) const;
@@ -41,7 +46,7 @@ public:
     Vector operator-() const;
 
     double operator[](unsigned idx) const { return tab[idx]; };
-    double& operator[](unsigned idx) 
+    double& operator[](unsigned idx)
     { 
         if (idx == 0)
             return this->coord.x;

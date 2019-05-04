@@ -3,17 +3,18 @@
 #include "triangle.hh"
 #include "light.hh"
 #include "material.hh"
+#include "matrix.hh"
 #include "json.hpp"
 
-#include <iostream>
 #include <algorithm>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include "matrix.hh"
-#include <map>
 #include <exception>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
 #include <string>
+#include <unordered_set>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -245,10 +246,13 @@ void parse_materials(const std::string &s, Scene &scene)
                     break;
             }
             Material mat(ns, ka, kd, ks, ke, ni, d, illum, tf, map_kd, map_ka);
+
+            if (ke.is_not_null())
+                scene.emissive_name.push_back(name);
             //  std::cout << "newmtl " << name << std::endl;
             //  mat.dump();
             scene.map.emplace(std::make_pair(name, mat));
-            if (!map_kd.empty())
+            if (!map_kd.empty()) // insert texture
             {
                 if (scene.map_text.find(map_kd) == scene.map_text.end())
                 {
@@ -278,7 +282,7 @@ void parse_materials(const std::string &s, Scene &scene)
 }
 
 void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_names,
-                     std::vector<Triangle>& v_tri)
+                     std::vector<Triangle>& v_tri, Scene &scene)
 {
     std::vector<Vector> v;
     std::vector<Vector> vn;
@@ -291,6 +295,8 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
     double val[3];
     unsigned idx[9] = { 0 };
     unsigned cur_idx = 0;
+
+    std::unordered_set<std::string> set_material;
 
     while (std::getline(in, line))
     {
@@ -373,11 +379,23 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
             }
             else
             {
-                /*
-                for (unsigned i = 0; i < 9; ++i)
+                bool inside = false;
+                for (size_t i = 0; i < scene.emissive_name.size(); ++i)
                 {
-                    std::cout << idx[i] << std::endl;
-                }*/
+                    if (scene.emissive_name[i] == mat_names[cur_idx])
+                    {
+                        inside = true;
+                        break;
+                    }
+                }
+
+                if (inside && set_material.find(mat_names[cur_idx]) == set_material.end())
+                {
+                    set_material.insert(mat_names[cur_idx]);
+                    scene.emissive.push_back((v[idx[0]] + v[idx[3]] + v[idx[6]]) / 3);
+                    std::cout << "insert: " << mat_names[cur_idx] << '\n'; //FIXME multiple emissive
+                }
+
                 Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
                            vt[idx[1]], vt[idx[4]], vt[idx[7]],
                            vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);

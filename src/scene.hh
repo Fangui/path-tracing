@@ -32,6 +32,9 @@ struct Scene
     Matrix transform;
     std::vector<Light*> lights;
     std::vector<Object> objects;
+    std::vector<Vector> emissive; // coord of emmisive lights
+    std::vector<std::string> emissive_name;
+
     std::vector<std::string> mat_names;
     std::unordered_map<std::string, Material> map;
     std::unordered_map<std::string, Texture> map_text;
