@@ -12,12 +12,6 @@ const std::function<bool (Triangle, Triangle)> func[3] =
     [](Triangle a, Triangle b) { return a.get_mean()[2] < b.get_mean()[2]; }
 };
 
-#define GET_MIN_MAX(idx, coord) \
-    if (box[idx] > beg->vertices[i][coord]) \
-        box[idx] = beg->vertices[i][coord]; \
-    if (box[idx + 1] < beg->vertices[i][coord]) \
-        box[idx + 1] = beg->vertices[i][coord];
-
 static void get_extremum(double box[6], iterator_v beg,
                                        iterator_v end)
 {
@@ -48,21 +42,13 @@ static void get_extremum(double box[6], iterator_v beg,
     }
 
     for (unsigned i = 0; i < 6; i += 2) // expand bounding box
-        box[i] -= 0.1;
+        box[i] -= EPSILON;
     for (unsigned i = 1; i < 6; i += 2)
-        box[i] += 0.1;
+        box[i] += EPSILON;
 }
 
 static unsigned get_longest_axis(double box[6])
 {
-
-    static bool is_first = true;
-    if (is_first) // first case split in z for optimization
-    {
-        is_first = false;
-        return 2;
-    }
-
     double diff_x = box[1] - box[0];
     double diff_y = box[3] - box[2];
     double diff_z = box[5] - box[4];
@@ -75,7 +61,7 @@ static unsigned get_longest_axis(double box[6])
     }
     if (diff_y > diff_z)
         return 1;
-    
+
     return 2;
 }
 
@@ -164,32 +150,11 @@ void KdTree::KdNode::search(Ray &ray, double &dist) const
             }
         }
 
-        if (false && axis == 2) // Good opti but may be dangerous
-        {
-            double prev_dist = dist;
-            if (ray.o[2] < beg->vertices[2][2])
-            {
-                left.get()->search(ray, dist);
-                if (prev_dist != dist) // find closer no need to visit 
-                    return;
-                right.get()->search(ray, dist);
-            }
-            else
-            {
-                right.get()->search(ray, dist);
-                if (prev_dist != dist)
-                    return;
-                left.get()->search(ray, dist);
-            }
-        }
-        else
-        {
-            if (left != nullptr)
-                left.get()->search(ray, dist);
+        if (left != nullptr)
+            left.get()->search(ray, dist);
 
-            if (right != nullptr)
-                right.get()->search(ray, dist);
-        }
+        if (right != nullptr)
+            right.get()->search(ray, dist);
     }
 }
 

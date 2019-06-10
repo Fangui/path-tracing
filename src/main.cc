@@ -120,12 +120,13 @@ int main(int argc, char *argv[])
             Ray r(scene.cam_pos, dir);
 
             vect[idx] = cast_ray(scene, r, tree, 0); // depth
+            /*
             for (unsigned g = 0; g < 3; ++g) // gamme
             {
                 vect[idx][g] = pow(vect[idx][g], gamma);
                 if (vect[idx][g] > 1)
                     vect[idx][g] = 1;
-            }
+            }*/
         }
     }
     t2 = omp_get_wtime();

@@ -27,7 +27,12 @@ struct Triangle
         uv_pos[2] = p3;
 
         this->id = id;
+    }
 
+    Triangle() = default;
+
+    Vector get_mean(void) // return barycentre
+    {
         double x = 0.f;
         double y = 0.f;
         double z = 0.f;
@@ -38,14 +43,7 @@ struct Triangle
             y += vertices[i][1];
             z += vertices[i][2];
         }
-        mean = Vector(x / 3.f, y / 3.f, z / 3.f);
-    }
-
-    Triangle() = default;
-
-    Vector get_mean(void) // return barycentre
-    {
-        return mean;
+        return Vector(x / 3.f, y / 3.f, z / 3.f);
     }
 
     bool intersect(Ray &ray, double &dist) const;
@@ -54,7 +52,6 @@ struct Triangle
     Vector vertices[3];
     Vector normal[3];
     Vector uv_pos[3];
-    Vector mean;
     unsigned char id;
 };
 
@@ -68,8 +65,8 @@ struct Ray
         sign[2] = inv[2] < 0;
         ni = 1;
     };
-    Vector o;
-    Vector dir;
+    const Vector &o;
+    const Vector &dir;
     Vector inv;
     Triangle tri;
 
@@ -77,5 +74,5 @@ struct Ray
     double v;
     double ni;
 
-    short sign[3];
+    unsigned char sign[3];
 };

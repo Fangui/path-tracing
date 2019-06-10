@@ -119,8 +119,7 @@ Vector ray_to_light(const Scene &scene, const std::vector<Light*> lights,
         if (tree.search(r, dist))
         {
             const auto material = scene.map.at(scene.mat_names[r.tri.id]);
-            if (material.ke.is_not_null())
-                color += material.ke;
+            color += material.ke;
         }
     }
 
@@ -134,8 +133,6 @@ Vector ray_to_light(const Scene &scene, const std::vector<Light*> lights,
     return color;
 }
 
-
-
 Vector cast_ray(const Scene &scene,
                 Ray &ray, const KdTree &tree,
                 unsigned char depth)
@@ -147,6 +144,9 @@ Vector cast_ray(const Scene &scene,
     if (tree.search(ray, dist))
     {
         const auto material = scene.map.at(scene.mat_names[ray.tri.id]);
+        if (material.ke.is_not_null())
+            return material.ke;
+
         const Vector inter = ray.o + ray.dir * dist;
         Vector normal = ray.tri.normal[0] * (1 - ray.u - ray.v)
           + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
@@ -164,7 +164,7 @@ Vector cast_ray(const Scene &scene,
             Vector origin = inter + refl * BIAS;
             Ray ray_refl(origin, refl);
 
-            indirect_color = cast_ray(scene, ray_refl, tree, depth + 1) * 0.8; //Fixme
+            return cast_ray(scene, ray_refl, tree, depth + 1) * 0.8; //Fixme
         }
         else if (material.illum == 5)
         {
@@ -291,152 +291,6 @@ double fresnel_transmision(const Vector &incident, const Vector &m)
     return left * right;
 }
 
-#define delta(x) (float)(std::abs(x) <= 1e-3f)
-#define sign(x) ((x > 0.0) - (x < 0.0))
-Vector spherical(double phi, double theta)
-{
-    return Vector(cosf(phi) * sinf(theta),  cosf(theta), sinf(phi) * sinf(theta));
-}
-
-Vector rotate(Vector a, Vector n)
-{
-    /* If the normal vector is already the world space upwards (or downwards) vector, don't do anything. */
-    if (!delta(1 - std::abs(n .dot_product(Vector(1, 0, 0)))))
-    {
-        /* Build the orthonormal basis of the normal vector. */
-        Vector bX = (n.cross_product(Vector(0, 1, 0))).norm_inplace();
-        Vector bZ = n.cross_product(bX).norm_inplace();
-
-        /* Transform the unit vector to this basis. */
-        return bX * a[0] + n * a[1] + bZ * a[2];
-    }
-    return a * sign(a.dot_product(n));
-}
-
-Vector sample_frost(Vector &origin, Vector &incident, const Vector &normal, const Material &material)
-{
-    double r1 = distribution(generator); // r1 = incident.dot_product(normal)
-    double r2 = distribution(generator);
-
-    double theta = atan(-pow(0.2, 2.0f) * log(1.0f - r1));
-    double phi = 2.0f * M_PI * r2;
-    Vector m = spherical(phi, theta);
-
-    /* Rotate the microfacet normal according to the actual surface normal. */
-    m = rotate(m, normal);
-
-    /* Work out the correct n1 and n2 depending on the incident vector's direction relative to the normal. */
-    float cosI = incident.dot_product(normal);
-    float n1, n2;
-
-    if (cosI > 0)
-    {
-        /* Incident and normal have the same direction, ray is inside the material. */
-        n1 = material.ni;
-        n2 = 1.0f;
-
-        /* Flip the microfacet normal around. */
-        m = -m;
-    }
-    else
-    {
-        /* Incident and normal have opposite directions, so the ray is outside the material. */
-        n2 = material.ni;
-        n1 = 1.0f;
-
-        /* Make the cosine positive. */
-        cosI = -cosI;
-    }
-
-    double cosT = 1.0f - pow(n1 / n2, 2.0f) * (1.0f - pow(cosI, 2.0f));
-
-    /* Check for total internal reflection. */
-    if (cosT < 0.0f)
-    {
-        /* Total internal reflection occurred. */
-        origin = origin + m * EPSILON;
-        return reflect(incident, m);
-    }
-
-    float R = (pow((n1 * cosI - n2 * cosT) / (n1 * cosI + n2 * cosT), 2.0f) + pow((n2 * cosI - n1 * cosT) / (n1 * cosT + n2 * cosI), 2.0f)) * 0.5f;
-
-    /* Perform a random trial to decide whether to reflect or refract the ray. */
-    if (distribution(generator) < R)
-    {
-        /* Reflection. */
-        origin = origin + m * EPSILON;
-        return reflect(incident, m);
-    }
-    else
-    {
-        origin = origin - m * EPSILON;
-        return incident * (n1 / n2) + m * ((n1 / n2) * cosI - cosT);
-    }
-}
-
-double reflectance(Vector &incident, Vector &exitant, const Vector &n, const Material &material)
-{
-    float n1, n2;
-    Vector normal = n;
-    if (incident.dot_product(normal))
-    {
-        /* Incident and normal have the same direction, ray is inside the material. */
-        n1 = material.ni;
-        n2 = 1.0;
-
-        /* Flip the microfacet normal around. */
-        normal = -normal;
-    }
-    else
-    {
-        /* Incident and normal have opposite directions, so the ray is outside the material. */
-        n2 = material.ni;
-        n1 = 1.0;
-    }
-
-    Vector H;
-    double D = 1.0;
-    if (incident.dot_product(exitant) < 0.0)
-    {
-        /* Reflection occurred, find the half-angle vector. */
-        H = (exitant - incident).norm_inplace();
-
-        /* If the ray was not importance-sampled, we need to take into account the distribution. */
-        /* Get the half angle vector's angle with the normal. */
-        float alpha = acos(H.dot_product(normal));
-
-        /* Compute the Beckmann distribution. */
-        D = exp(-pow(tan(alpha) / 0.2, 2.0));
-    }
-    else
-    {
-        double cI = std::abs(incident.dot_product(normal));
-        double cT = 1.0 - pow(n1 / n2, 2.0) * (1.0 - pow(cI, 2.0));
-        H = (incident * (n1 / n2) - exitant) / ((n1 / n2) * cI - cT);
-
-        /* Get the half angle vector's angle with the normal. */
-        double alpha = acos(H.dot_product(normal));
-
-        /* Compute the Beckmann distribution. */
-        D = exp(-pow(tan(alpha) / 0.2, 2.0f));
-    }
-
-    double NdV = std::abs(incident.dot_product(normal));
-    double NdL = std::abs(normal.dot_product(exitant));
-    double VdH = std::abs(incident.dot_product(H));
-    double NdH = std::abs(normal.dot_product(H));
-    double G = std::min(1.0, std::min(2.0 * NdH * NdV / VdH, 2.0 * NdH * NdL / VdH));
-
-    /* Compute the microfacet normalization term. */
-    double norm = 1.0 / (M_PI * pow(0.2, 2.0) * pow(NdH, 4.0));
-
-    /* Compute the reflectance (note the lambertian term cancels a dot product out).
-     *      * Also note we do NOT use the fresnel term if the ray was importance-sampled,
-     *           * since we were already weighting the probability of reflection and refraction
-     *                * with it when sampling the BTDF. */
-    return norm * (D * G) / (NdV);
-}
-
 Vector indirect_light(const Scene &scene,
                       const KdTree &tree, const Vector &inter,
                       const Vector &normal,
@@ -444,91 +298,83 @@ Vector indirect_light(const Scene &scene,
                       const Ray &ray,
                       unsigned char depth)
 {
-    const unsigned nb_ray = scene.nb_ray / (pow(2, depth));
+    unsigned nb_ray = scene.nb_ray / (pow(2, depth));
+    if (depth >= 2)
+        nb_ray = 5;
+
     Vector nt;
     Vector nb;
-    Vector indirect_color;
+    Vector indirect_color = ray_to_light(scene, scene.lights, ray, tree); // simulate dir light
+
     create_coordinate_system(normal, nt, nb);
 
     const Vector vo = inter - scene.cam_pos;
-//    const Vector vo = (scene.cam_pos - inter).norm_inplace();
- //   const Vector vo = -ray.dir;
+  //  const Vector vo = scene.cam_pos - inter;
+   // const Vector vo = -ray.dir;
 
     Vector diffuse;
     Vector spec;
 
     for (unsigned i = 0; i  < nb_ray; ++i)
     {
-        if (material.illum == 2)
+        double r1 = distribution(generator); // r1 = incident.dot_product(normal)
+        double r2 = distribution(generator);
+
+        Vector sample = uniform_sample_hemisphere(r1, r2);
+        Vector incident(sample[0] * nb[0] + sample[1] * normal[0] + sample[2] * nt[0],
+                        sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
+                        sample[0] * nb[2] + sample[1] * normal[2] + sample[2] * nt[2]);
+
+        Vector origin = inter + incident * BIAS;
+        Ray ray(origin, incident);
+
+        Vector li = cast_ray(scene, ray, tree, depth + 1);
+        diffuse += li * r1;
+
+        if (material.ks.is_not_null())
         {
-            double r1 = distribution(generator); // r1 = incident.dot_product(normal)
-            double r2 = distribution(generator);
-
-            Vector sample = uniform_sample_hemisphere(r1, r2);
-            Vector incident(sample[0] * nb[0] + sample[1] * normal[0] + sample[2] * nt[0],
-                            sample[0] * nb[1] + sample[1] * normal[1] + sample[2] * nt[1],
-                            sample[0] * nb[2] + sample[1] * normal[2] + sample[2] * nt[2]);
-
-            Vector origin = inter + incident * BIAS;
-            Ray r(origin, incident);
-
-            Vector li = cast_ray(scene, r, tree, depth + 1);
-            diffuse += li * r1;
-        }
-        if (material.illum == 5)
-        {
-            Vector origin = inter + ray.dir * BIAS;
-            Vector dir = ray.dir;
-            Vector exitant = sample_frost(origin, dir, normal, material);
-            exitant.norm_inplace();
-            double radiance = reflectance(dir, exitant, normal, material);
-
-            Ray r(origin, exitant);
-            Vector color = cast_ray(scene, r, tree, depth + 1);
-            spec += color * radiance;
-        }
-        continue;
-        /*
-        Vector hr = vo + incident;
-        hr /= hr.get_dist();
+            Vector hr = vo + incident;
+            hr /= hr.get_dist();
 
         // double d = GGX_Distribution(normal, hr, 0.2); // roughness 0.2
-        double d = beckman(normal, hr, 0.2); // roughness 0.2
-        double g = g_cook_torrance(normal, vo, hr, incident);
-        double f = schlick(1, 1.5, incident.dot_product(hr));
-        //     double f = fresnel_transmision(incident, hr);  // broken
+            double d = beckman(normal, hr, 0.2); // roughness 0.2
+            double g = g_cook_torrance(normal, vo, hr, incident);
+            double f = schlick(1, 1.5, incident.dot_product(hr));
+            //     double f = fresnel_transmision(incident, hr);  // broken
 
-        double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
+            double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
 
-        if (material.ni > 1.2)
-        {
-            Vector ht = -1 * (1 * incident + 1.5 * vo); // ni fix to 1 no 1.5
-            ht /= ht.get_dist();
+            /*
+            if (material.ni > 1.2) // not ideal refraction
+            {
+                Vector ht = -1 * (1 * incident + 1.5 * vo); // ni fix to 1 no 1.5
+                ht /= ht.get_dist();
 
-            double ft = incident.dot_product(ht) * vo.dot_product(ht);
-            ft /= (incident.dot_product(normal) * (vo.dot_product(normal)));
+                double ft = incident.dot_product(ht) * vo.dot_product(ht);
+                ft /= (incident.dot_product(normal) * (vo.dot_product(normal)));
 
-            double dt = beckman(normal, ht, 0.2);
-            double gt = g_cook_torrance(normal, vo, ht, incident);
-            double fresnel_t = schlick(1, 1.5, incident.dot_product(ht));
+                double dt = beckman(normal, ht, 0.2);
+                double gt = g_cook_torrance(normal, vo, ht, incident);
+                double fresnel_t = schlick(1, 1.5, incident.dot_product(ht));
 
-            double right = (1.5 * 1.5) * (1 - fresnel_t) * gt * dt;
-            right /= pow((1.0 * (incident.dot_product(ht)) + 1.5 * (vo.dot_product(ht))), 2);
+                double right = (1.5 * 1.5) * (1 - fresnel_t) * gt * dt;
+                right /= pow((1.0 * (incident.dot_product(ht)) + 1.5 * (vo.dot_product(ht))), 2);
 
-            ft *= right;
-            fr += ft;
+                ft *= right;
+                fr += ft;
+            }*/
+            spec += M_PI * 2 * li * fr * r1; // p = 1 / 2PI
         }
-        spec += M_PI * 2 * li * fr * r1; // p = 1 / 2PI*/
  // p = 1 / 2PI//        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
     }
 
     auto kd_map = scene.map_text.find(material.kd_name); // apply diffuse light
     if (kd_map == scene.map_text.end()) // case not texture
-        indirect_color = 2 * diffuse * material.kd; // lambert
+        indirect_color += 2 * diffuse * material.kd; // lambert
     else
     {
         const Vector &text = get_texture(ray, kd_map->second); // case texture
-        indirect_color = 2 * diffuse * text;
+        indirect_color += 2 * material.ni * diffuse * text;
     }
 
     spec *= material.ks;
@@ -545,6 +391,7 @@ Vector direct_light(const Scene &scene, const Material &material,
                     int depth)
 {
     Vector color;
+    (void) depth;
 
     /*
     if (material.illum == 4) //transparence
@@ -608,6 +455,7 @@ Vector direct_light(const Scene &scene, const Material &material,
             color += (light->color * spec * material.ks);
     }
 
+    /*
     auto ka_map = scene.map_text.find(material.ka_name);
     if (ka_map != scene.map_text.end())
     {
@@ -616,6 +464,6 @@ Vector direct_light(const Scene &scene, const Material &material,
     }
     else
         color += material.ka * scene.a_light;
-
+    */
     return color;
 }

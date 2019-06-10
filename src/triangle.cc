@@ -3,12 +3,12 @@
 bool Triangle::intersect(Ray &ray,
                          double &dist) const
 {
-    Vector vertex0 = vertices[0];
-    Vector vertex1 = vertices[1];
-    Vector vertex2 = vertices[2];
+    const Vector &vertex0 = vertices[0];
+    const Vector &vertex1 = vertices[1];
+    const Vector &vertex2 = vertices[2];
 
-    Vector edge1 = vertex1 - vertex0;
-    Vector edge2 = vertex2 - vertex0;
+    const Vector edge1 = vertex1 - vertex0;
+    const Vector edge2 = vertex2 - vertex0;
     Vector h = ray.dir.cross_product(edge2);
 
     double det = edge1.dot_product(h);
@@ -21,7 +21,7 @@ bool Triangle::intersect(Ray &ray,
     if (u < 0.0 || u > 1.0)
         return false;
 
-    s = s.cross_product_inplace(edge1);
+    s.cross_product_inplace(edge1);
     double v = f * (ray.dir.dot_product(s));
     if (v < 0.0 || u + v > 1.0)
         return false;

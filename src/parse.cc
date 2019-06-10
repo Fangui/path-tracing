@@ -251,6 +251,7 @@ void parse_materials(const std::string &s, Scene &scene)
                 scene.emissive_name.push_back(name);
             //  std::cout << "newmtl " << name << std::endl;
             //  mat.dump();
+            //
             scene.map.emplace(std::make_pair(name, mat));
             if (!map_kd.empty()) // insert texture
             {
@@ -268,8 +269,6 @@ void parse_materials(const std::string &s, Scene &scene)
                     scene.map_text.emplace(std::make_pair(map_ka, t));
                 }
             }
-
-
         }
     }
 
@@ -297,6 +296,7 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
     unsigned cur_idx = 0;
 
     std::unordered_set<std::string> set_material;
+
 
     while (std::getline(in, line))
     {
@@ -370,35 +370,35 @@ void obj_to_vertices(const std::string &s, const std::vector<std::string> &mat_n
                 idx[cpt++] = stof(s) - 1;
             } // FIXME
 
+            bool inside = false;
+            for (size_t i = 0; i < scene.emissive_name.size(); ++i)
+            {
+                if (scene.emissive_name[i] == mat_names[cur_idx])
+                {
+                    inside = true;
+                    break;
+                }
+            }
+
+            if (inside && set_material.find(mat_names[cur_idx]) == set_material.end())
+            {
+                set_material.insert(mat_names[cur_idx]);
+                scene.emissive.push_back((v[idx[0]] + v[idx[3]] + v[idx[6]]) / 3);
+                std::cout << "insert: " << mat_names[cur_idx] << '\n'; //FIXME multiple emissive
+            }
+
             if (skip_vt) // if not vn in file
             {
                 Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                           v[0], v[0], v[0],  //trash
-                           vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
+                        v[0], v[0], v[0],  //trash
+                        vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
                 v_tri.push_back(t);
             }
             else
             {
-                bool inside = false;
-                for (size_t i = 0; i < scene.emissive_name.size(); ++i)
-                {
-                    if (scene.emissive_name[i] == mat_names[cur_idx])
-                    {
-                        inside = true;
-                        break;
-                    }
-                }
-
-                if (inside && set_material.find(mat_names[cur_idx]) == set_material.end())
-                {
-                    set_material.insert(mat_names[cur_idx]);
-                    scene.emissive.push_back((v[idx[0]] + v[idx[3]] + v[idx[6]]) / 3);
-                    std::cout << "insert: " << mat_names[cur_idx] << '\n'; //FIXME multiple emissive
-                }
-
                 Triangle t(v[idx[0]], v[idx[3]], v[idx[6]],
-                           vt[idx[1]], vt[idx[4]], vt[idx[7]],
-                           vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
+                        vt[idx[1]], vt[idx[4]], vt[idx[7]],
+                        vn[idx[2]], vn[idx[5]], vn[idx[8]], cur_idx);
                 v_tri.push_back(t);
             }
         }
