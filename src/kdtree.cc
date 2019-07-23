@@ -136,7 +136,7 @@ void KdTree::KdNode::search(Ray &ray, double &dist) const
             {
                 Vector inter = ray.o + ray.dir * t;
                 double distance = (inter - ray.o).get_dist();
-            //    double distance = fabs(inter[2] - ray.o[2]);
+                
                 if (dist > distance || dist == -1)
                 {
                     dist = distance;

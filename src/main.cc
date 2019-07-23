@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
 
     t1 = omp_get_wtime();
 
-    constexpr double gamma = 1. / 2.2;
 #pragma omp parallel for schedule (dynamic)
     for (int i = -scene.width / 2; i < scene.width / 2; ++i)
     {
@@ -120,13 +119,6 @@ int main(int argc, char *argv[])
             Ray r(scene.cam_pos, dir);
 
             vect[idx] = cast_ray(scene, r, tree, 0); // depth
-            /*
-            for (unsigned g = 0; g < 3; ++g) // gamme
-            {
-                vect[idx][g] = pow(vect[idx][g], gamma);
-                if (vect[idx][g] > 1)
-                    vect[idx][g] = 1;
-            }*/
         }
     }
     t2 = omp_get_wtime();
@@ -134,21 +126,7 @@ int main(int argc, char *argv[])
 
     write_ppm(out_file + ".ppm", vect, scene.width, scene.height);
     double t4 = omp_get_wtime();
-    /*
-    std::vector<Vector> out;
-
-    for (int i = 0; i < scene.width; i += 2)
-    {
-        for (int j = 0; j < scene.height; j += 2)
-        {
-            Vector c = (vect[i * scene.width + j]
-                      + vect[i * scene.width + j + 1]
-                      + vect[(i + 1) * scene.height + j]
-                      + vect[(i + 1) * scene.height + j + 1]) / 4;
-
-            out.push_back(c);
-        }
-    }*/
+    
     std::vector<Vector> res;
     denoise(vect, res, matrix_size, scene.width);
 

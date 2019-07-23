@@ -152,9 +152,6 @@ Vector cast_ray(const Scene &scene,
           + ray.tri.normal[1] * ray.u +  ray.tri.normal[2] * ray.v;
         normal.norm_inplace();
 
-
-    //    Vector direct_color = direct_light(scene, material, ray,
-      //                                     tree, inter, normal, depth);
         Vector indirect_color;
 
         if (material.illum == 4) // reflection
@@ -164,15 +161,15 @@ Vector cast_ray(const Scene &scene,
             Vector origin = inter + refl * BIAS;
             Ray ray_refl(origin, refl);
 
-            return cast_ray(scene, ray_refl, tree, depth + 1) * 0.8; //Fixme
+            return cast_ray(scene, ray_refl, tree, depth + 1) * 0.8; //Fixme * material.kd
         }
         else if (material.illum == 5)
         {
             indirect_color = refract_ray(scene, tree, ray.dir,
                                          normal, inter,
-                                         material.ni, depth) * material.kd; // FIXME texture 
+                                         material.ni, depth) * material.kd; // FIXME texture
         }
-        
+
         indirect_color += indirect_light(scene, tree,
                                          inter, normal, material, ray,
                                          depth);
@@ -199,25 +196,8 @@ Vector uniform_sample_hemisphere(double r1, double r2)
     double x = sinTheta * cosf(phi);
     double z = sinTheta * sinf(phi);
     return Vector(x, r1, z);
-  //  return Vector(x, z, r1);
 }
 
-float chiGGX(float v)
-{
-    return v > 0 ? 1 : 0;
-}
-
-double GGX_Distribution(const Vector &n, const Vector &h, double alpha)
-{
-    double NoH = n.dot_product(h);
-    double alpha2 = alpha * alpha;
-    double NoH2 = NoH * NoH;
-    //double den = NoH2 * alpha2 + (1 - NoH2);
-    double den = NoH2 * (alpha2 - 1) + 1; // http://graphicrants.blogspot.0om/2013/08/specular-brdf-reference.html
-    return (chiGGX(NoH) * alpha2) / ( M_PI * den * den );
-}
-
-// https://computergraphics.stackexchange.com/questions/4394/path-tracing-the-cook-torrance-brdf
 double g_cook_torrance(const Vector &normal, const Vector &view, const Vector &h,
                        const Vector &sample)
 {
@@ -237,30 +217,6 @@ double schlick(double n1, double n2, double cos_i)
     ro *= ro;
 
     return ro + (1 - ro) * pow((1 - cos_i), 5);
-}
-
-double schlick_fresnel(double n1, double n2, const Vector &normal,
-        const Vector &incident)
-{
-    double r0 = (n1-n2) / (n1+n2);
-    r0 *= r0;
-    double cosX = -normal.dot_product(incident);
-    if (n1 > n2)
-    {
-        double n = n1/n2;
-        double sinT2 = n*n*(1.0-cosX*cosX);
-        // Total internal reflection
-        if (sinT2 > 1.0)
-            return 1.0;
-        cosX = sqrt(1.0-sinT2);
-    }
-    double x = 1.0-cosX;
-    double ret = r0+(1.0-r0)*x*x*x*x*x;
-
-    double kr = 0.8;
-    // adjust reflect multiplier for object reflectivity
-    ret = (kr + (1.0- kr) * ret);
-    return ret;
 }
 
 double beckman(const Vector &normal, const Vector &h, double m)
@@ -309,8 +265,6 @@ Vector indirect_light(const Scene &scene,
     create_coordinate_system(normal, nt, nb);
 
     const Vector vo = inter - scene.cam_pos;
-  //  const Vector vo = scene.cam_pos - inter;
-   // const Vector vo = -ray.dir;
 
     Vector diffuse;
     Vector spec;
@@ -336,36 +290,14 @@ Vector indirect_light(const Scene &scene,
             Vector hr = vo + incident;
             hr /= hr.get_dist();
 
-        // double d = GGX_Distribution(normal, hr, 0.2); // roughness 0.2
             double d = beckman(normal, hr, 0.2); // roughness 0.2
             double g = g_cook_torrance(normal, vo, hr, incident);
             double f = schlick(1, 1.5, incident.dot_product(hr));
-            //     double f = fresnel_transmision(incident, hr);  // broken
 
             double fr = d * f * g / (4 * incident.dot_product(normal) * vo.dot_product(normal));
 
-            /*
-            if (material.ni > 1.2) // not ideal refraction
-            {
-                Vector ht = -1 * (1 * incident + 1.5 * vo); // ni fix to 1 no 1.5
-                ht /= ht.get_dist();
-
-                double ft = incident.dot_product(ht) * vo.dot_product(ht);
-                ft /= (incident.dot_product(normal) * (vo.dot_product(normal)));
-
-                double dt = beckman(normal, ht, 0.2);
-                double gt = g_cook_torrance(normal, vo, ht, incident);
-                double fresnel_t = schlick(1, 1.5, incident.dot_product(ht));
-
-                double right = (1.5 * 1.5) * (1 - fresnel_t) * gt * dt;
-                right /= pow((1.0 * (incident.dot_product(ht)) + 1.5 * (vo.dot_product(ht))), 2);
-
-                ft *= right;
-                fr += ft;
-            }*/
             spec += M_PI * 2 * li * fr * r1; // p = 1 / 2PI
         }
- // p = 1 / 2PI//        spec += ((M_PI / 2 * li * d * f * g) / (normal.dot_product(vo)));
     }
 
     auto kd_map = scene.map_text.find(material.kd_name); // apply diffuse light
@@ -382,88 +314,4 @@ Vector indirect_light(const Scene &scene,
     indirect_color /= (double)(nb_ray);
 
     return indirect_color;
-}
-
-
-Vector direct_light(const Scene &scene, const Material &material,
-                    const Ray &ray, const KdTree &tree,
-                    const Vector &inter, const Vector &normal,
-                    int depth)
-{
-    Vector color;
-    (void) depth;
-
-    /*
-    if (material.illum == 4) //transparence
-    {
-        //doule kr = fresnel(light.dir, normal, material.ni);
-
-        Vector reflect_dir = reflect(ray.dir, normal);
-        reflect_dir.norm_inplace();
-
-        Vector origin = inter + reflect_dir * BIAS;
-        Ray r(origin, reflect_dir);
-
-        color += cast_ray(scene, r, tree, depth + 1) * 0.8;
-        return color;
-    }
-    else if (material.illum == 5) // refraction
-    {
-        color = refract_ray(scene, tree, ray.dir,
-                                     normal, inter, material.ni, depth);
-
-    }*/
-
-    double rat;
-    for (const auto *light : scene.lights) // diffuse light
-    {
-        Vector L = light->compute_light(inter, tree, rat);
-
-        double diff = 0.f;
-        if (rat > 0)
-        {
-            diff = L.dot_product(normal);
-            if (diff < 0)
-                diff = 0;
-        }
-
-        double spec = 0;
-        if (L.is_not_null())
-        {
-            Vector R = reflect(L, normal);
-            R.norm_inplace();
-
-            double spec_coef = ray.dir.dot_product(R);
-            if (spec_coef < 0)
-                spec_coef = 0;
-            spec = pow(spec_coef, material.ns);
-            if (spec < 0)
-                spec = 0;
-        }
-        if (diff)
-        {
-            auto kd_map = scene.map_text.find(material.kd_name);
-            if (kd_map != scene.map_text.end())
-            {
-                const Vector &text = get_texture(ray, kd_map->second);
-                color += light->color *  text * diff * rat;
-            }
-            else
-                color += light->color * material.kd * diff * rat;
-        }
-        if (material.illum != 1 && spec)
-            color += (light->color * spec * material.ks);
-    }
-
-    /*
-    auto ka_map = scene.map_text.find(material.ka_name);
-    if (ka_map != scene.map_text.end())
-    {
-        const Vector &text = get_texture(ray, ka_map->second);
-        color += text * scene.a_light;
-    }
-    else
-        color += material.ka * scene.a_light;
-    */
-    return color;
 }
